@@ -1,0 +1,50 @@
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.exe.config
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.exe
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.pdb
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.xml
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\__SpeedTree_SRT_Reader.Resources.resources
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.vbproj.GenerateResource.Cache
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.exe
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.xml
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.pdb
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\DevIL.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\freeglut.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\ILU.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\ILUT.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.DevIl.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.FreeGlut.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.OpenGl.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.Platform.Windows.dll
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.DevIl.xml
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.FreeGlut.xml
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.OpenGl.xml
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\bin\Debug\Tao.Platform.Windows.xml
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.vbprojResolveAssemblyReference.cache
+C:\!_SpeedTree_SRT_Reader\!_SpeedTree_SRT_Reader\obj\Debug\__SpeedTree_SRT_Reader.frmMain.resources
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.exe.config
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.exe
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.xml
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.pdb
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\DevIL.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\freeglut.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\ILU.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\ILUT.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.exe
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.pdb
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\!_SpeedTree_SRT_Reader.xml
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.DevIl.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.FreeGlut.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.OpenGl.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.Platform.Windows.dll
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.DevIl.xml
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.FreeGlut.xml
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.OpenGl.xml
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\bin\Debug\Tao.Platform.Windows.xml
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.vbprojResolveAssemblyReference.cache
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\__SpeedTree_SRT_Reader.frmMain.resources
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\__SpeedTree_SRT_Reader.Resources.resources
+I:\OpenGL Template\!_SpeedTree_SRT_Reader\obj\Debug\!_SpeedTree_SRT_Reader.vbproj.GenerateResource.Cache
+C:\!_Load_Anything\LoadAnything\bin\Debug\!_SpeedTree_SRT_Reader.exe.config
+C:\!_Load_Anything\LoadAnything\obj\Debug\!_SpeedTree_SRT_Reader.exe
+C:\!_Load_Anything\LoadAnything\obj\Debug\!_SpeedTree_SRT_Reader.xml
+C:\!_Load_Anything\LoadAnything\obj\Debug\!_SpeedTree_SRT_Reader.pdb

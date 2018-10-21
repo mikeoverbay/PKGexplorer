@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PKGexplorer", "LoadAnything\PKGexplorer.vbproj", "{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "PKGexplorer_Setup", "PKGviewer_Setup\PKGviewer_Setup.vdproj", "{903CC88B-B74D-4D2E-B29F-142AB38FE201}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Debug|x86.ActiveCfg = Debug|x86
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Debug|x86.Build.0 = Debug|x86
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Release|x86.ActiveCfg = Release|x86
+		{35FE17E5-CE9C-446D-831F-ACB61D7F1ED8}.Release|x86.Build.0 = Release|x86
+		{903CC88B-B74D-4D2E-B29F-142AB38FE201}.Debug|Any CPU.ActiveCfg = Debug
+		{903CC88B-B74D-4D2E-B29F-142AB38FE201}.Debug|x86.ActiveCfg = Debug
+		{903CC88B-B74D-4D2E-B29F-142AB38FE201}.Release|Any CPU.ActiveCfg = Release
+		{903CC88B-B74D-4D2E-B29F-142AB38FE201}.Release|x86.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
