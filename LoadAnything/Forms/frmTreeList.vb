@@ -205,7 +205,7 @@ Public Class frmTreeList
                     frmTextureViewer.set_current_image()
                     frmTextureViewer.draw()
                     Exit Select
-                Case ".xml", ".model", ".visual_processed", ".settings", ".def", ".texformat"
+                Case ".xml", ".model", ".visual", ".visual_processed", ".settings", ".def", ".texformat"
                     Dim ms As New MemoryStream
                     Dim ent = current_package(tv_contents.SelectedNode.Tag)
                     If ent IsNot Nothing Then
@@ -220,7 +220,7 @@ Public Class frmTreeList
                     frmVisualViewer.tb.SelectionLength = 0
                     frmVisualViewer.tb.SelectionStart = 0
                     Exit Select
-                Case ".primitives_processed"
+                Case ".primitives", ".primitives_processed"
                     Dim ms As New MemoryStream
                     Dim ent = current_package(tv_contents.SelectedNode.Tag)
                     If ent IsNot Nothing Then
@@ -231,6 +231,7 @@ Public Class frmTreeList
                     End If
                     Try
                         loadmodel(ms)
+                        model_name = Path.GetFileName(Path.GetFileName(tv_contents.SelectedNode.Text))
                     Catch ex As Exception
                         MsgBox("Unable to load that model", MsgBoxStyle.Exclamation, "Dammit!")
                     End Try

@@ -3,7 +3,7 @@ Module modGlobals
 
     Public _STARTED As Boolean = False
     Public coffee_list As Integer
-
+    Public model_name As String = ""
     Public Model_Loaded As Boolean
     '=========================================================
     Public checkerboard_id As Integer

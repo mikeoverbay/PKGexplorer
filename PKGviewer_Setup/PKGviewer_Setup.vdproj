@@ -166,12 +166,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_FEDE41023588B07717752AC098DEC9D2"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_4A56F6D2FF1F4B4AA04E834D7FB7AB68"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -223,6 +217,12 @@
         "OwnerKey" = "8:_8985E0B113AB286CEF24DC934456AA3E"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_FEDE41023588B07717752AC098DEC9D2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -241,13 +241,21 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:..\\PKGviewer_Setup_000.msi"
+        "OutputFilename" = "8:..\\PKGviewer_Setup_001.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -257,6 +265,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
@@ -956,15 +972,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:PKG Explorer"
-        "ProductCode" = "8:{711F1D44-1350-41D0-9F5B-94119C0F99A2}"
-        "PackageCode" = "8:{0DC1805F-F3B1-4849-B768-49DF2ED3E111}"
+        "ProductCode" = "8:{BF7F1B84-B488-4445-88A3-A41AF4E687E7}"
+        "PackageCode" = "8:{948605A9-30D3-44EE-A82C-C4E22802EA66}"
         "UpgradeCode" = "8:{29CFECFE-8161-47E3-BBF2-177B142682C9}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.0.1"
         "Manufacturer" = "8:Coffee_"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

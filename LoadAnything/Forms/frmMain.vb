@@ -85,7 +85,7 @@ Public Class frmMain
         _STARTED = True
         Timer1.Start()
         '=====================================================================
-
+        Me.Text += " Version: " + Application.ProductVersion
     End Sub
 
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -212,6 +212,8 @@ tryagain:
             Gl.glVertex3f(U_look_point_x, U_look_point_y, U_look_point_z - 1000)
             Gl.glEnd()
         End If
+        ViewOrtho()
+        glutPrintBox(10, -20, model_name, 1.0, 1.0, 1.0, 1.0) ' view status
 
         Wgl.wglSwapBuffers(pb1_hDC)
         If frmTextureViewer.Visible Then
