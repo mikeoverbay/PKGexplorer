@@ -1,6 +1,6 @@
 # PKG Explorer
 
-## A tool to exploring the Tanks from World of Tanks PKG files.
+## A tool to exploring the World of Tanks PKG files.
 <a><img src="https://i.imgur.com/OTTbONU.png" title="source: imgur.com" /></a>
 
 #### This is an ongoing project by me.. Coffee_
