@@ -8,8 +8,8 @@
 ### More will be added to this tool as I figure out how to load them in a way to visualize them.
 
 ## Version 1.0.0.1
-Model viwer displays the name of the loaded file.
-Update help file to include the video on how to use PKG Explorer.
+Model viewer displays the name of the loaded file.
+Updated help file to include the video on how to use PKG Explorer.
 
 ## Version 1.0.0.0
 First Release.
