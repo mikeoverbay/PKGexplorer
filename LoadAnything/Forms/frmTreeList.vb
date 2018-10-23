@@ -144,7 +144,7 @@ Public Class frmTreeList
                 Return
             End If
 
-            Dim f = tv_contents.SelectedNode.Tag
+            Dim f = tv_contents.SelectedNode.Text
 
             Dim p = My.Settings.extract_location
             If tv_contents.SelectedNode.Name = "dir" Then
@@ -205,7 +205,7 @@ Public Class frmTreeList
                     frmTextureViewer.set_current_image()
                     frmTextureViewer.draw()
                     Exit Select
-                Case ".xml", ".model", ".visual", ".visual_processed", ".settings", ".def", ".texformat"
+                Case ".xml", ".model", ".visual", ".visual_processed", ".settings", ".def", ".texformat", ".mfm", ".font", ".ini"
                     Dim ms As New MemoryStream
                     Dim ent = current_package(tv_contents.SelectedNode.Tag)
                     If ent IsNot Nothing Then

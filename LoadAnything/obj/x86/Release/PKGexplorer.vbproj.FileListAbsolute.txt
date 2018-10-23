@@ -49,3 +49,4 @@ C:\!_Load_Anything\LoadAnything\obj\x86\Release\PKGexplorer.vbproj.GenerateResou
 C:\!_Load_Anything\LoadAnything\obj\x86\Release\PKGviewer.exe
 C:\!_Load_Anything\LoadAnything\obj\x86\Release\PKGviewer.xml
 C:\!_Load_Anything\LoadAnything\obj\x86\Release\PKGviewer.pdb
+C:\!_Load_Anything\LoadAnything\obj\x86\Release\PKGexplorer.vbprojResolveAssemblyReference.cache

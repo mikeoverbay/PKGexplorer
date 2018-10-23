@@ -228,11 +228,11 @@ Module modModelLoader
             Next
             Dim r_count As UInt32 = 0
             ih.ind_h = na
-            na = ""
             Dim indi_scale As Integer = 2
             If InStr(na, "list32") > 0 Then
                 indi_scale = 4
             End If
+            na = ""
             Try 'sanity check
                 ih.nIndices_ = Ird.ReadUInt32
                 ih.nInd_groups = Ird.ReadUInt32

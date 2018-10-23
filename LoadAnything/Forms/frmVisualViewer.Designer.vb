@@ -46,7 +46,7 @@ Partial Class frmVisualViewer
         Me.Controls.Add(Me.tb)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "frmVisualViewer"
-        Me.Text = "Visual Viewer"
+        Me.Text = "Text Viewer"
         Me.ResumeLayout(False)
 
     End Sub
