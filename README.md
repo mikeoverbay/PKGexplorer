@@ -5,6 +5,9 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.0.3
+Fixed a stupid bug in extracting data.
+
 ## Version 1.0.0.2
 Fixed a bug with loading very large primitive files.
 Fixed a bug with extracting folders.
