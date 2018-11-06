@@ -6,6 +6,13 @@ Module modGlobals
     Public model_name As String = ""
     Public Model_Loaded As Boolean
     '=========================================================
+    Public x_max As Single = -10000
+    Public x_min As Single = 10000
+    Public y_min As Single = -10000
+    Public y_max As Single = 10000
+    Public z_max As Single = -10000
+    Public z_min As Single = 10000
+    Public bounding_size As Single
     Public checkerboard_id As Integer
     Public cur_texture_name As String
     Public file_name As String

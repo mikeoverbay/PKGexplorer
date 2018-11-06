@@ -92,7 +92,7 @@ Module modZipFolderResolver
         root.n.SelectedImageIndex = 2
         root.n.ImageIndex = 2
         root.n.Text = frmTreeList.tv_filenames.SelectedNode.Text
-        root.n.Tag = "dir"
+        root.n.Name = "dir"
         frmTreeList.tv_contents.Nodes.Add(root.n) 'Add to treeview
         '--------------------------------------------------------
         'now the fun up part. Create the nested tree structure.
@@ -107,6 +107,10 @@ Module modZipFolderResolver
             End If
             Dim a = ent.FileName.Split("/")
             For i = 0 To 8 ' 8 levels deep enough?
+                If a.Length > 7 Then
+                    rc(a, 0, 0, root, ent.FileName, isDir) ' non-depth restricted recrusive function
+                    Exit For
+                End If
                 If a.Length = 2 Then
                     Exit For
                 End If
@@ -204,4 +208,48 @@ Module modZipFolderResolver
             Next 'i
         Next 'each ent
     End Sub
+    Public Sub build_tree_recrusive()
+        '--------------------------------------------------------
+        'create the root node
+        root = New root_
+        GC.Collect() ' clean up garbage if we just killed existing data
+        root.n = New TreeNode
+        root.n.SelectedImageIndex = 2
+        root.n.ImageIndex = 2
+        root.n.Text = frmTreeList.tv_filenames.SelectedNode.Text
+        root.n.Name = "dir"
+        frmTreeList.tv_contents.Nodes.Add(root.n) 'Add to treeview
+        '--------------------------------------------------------
+        'now the fun up part. Create the nested tree structure.
+        Dim indexes(9) As Integer 'used to keep track of where we are in the tree structure
+        Dim isDir As Boolean = False ' flag for setting up image index
+        For Each ent In current_package
+            Dim ext = Path.GetExtension(ent.FileName)
+            If ext.Length > 0 Then 'is this entry a file or directory?
+                isDir = False
+            Else
+                isDir = True
+            End If
+            Dim a = ent.FileName.Split("/")
+
+            rc(a, 0, 0, root, ent.FileName, isDir)
+
+        Next 'each ent
+    End Sub
+    Private Function rc(ByRef a() As String, ByRef idx As Integer, ByRef ndx As Integer, ByRef node As root_, ByRef fullpath As String, ByVal isDir As Boolean) As Boolean
+        If idx = a.Length Then Return True
+        If a(idx) = "" Then Return True
+        If node.find(a(idx), ndx) Then
+            If rc(a, idx + 1, ndx, node.node(ndx), fullpath, isDir) Then
+                Return True
+            End If
+        Else
+            node.add(a(idx), ndx, fullpath, node.n, isDir)
+            If rc(a, idx + 1, ndx, node.node(ndx), fullpath, isDir) Then
+                Return True
+            End If
+        End If
+
+        Return True
+    End Function
 End Module

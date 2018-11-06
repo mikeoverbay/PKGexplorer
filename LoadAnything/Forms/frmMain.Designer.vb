@@ -41,6 +41,7 @@ Partial Class frmMain
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         Me.tv_imageList = New System.Windows.Forms.ImageList(Me.components)
         Me.tv_state_imagelist = New System.Windows.Forms.ImageList(Me.components)
+        Me.m_show_faces = New System.Windows.Forms.ToolStripMenuItem()
         Me.MM.SuspendLayout()
         CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SplitContainer1.Panel2.SuspendLayout()
@@ -51,7 +52,7 @@ Partial Class frmMain
         'MM
         '
         Me.MM.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None
-        Me.MM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.m_file, Me.m_explorer, Me.m_help, Me.m_grid, Me.m_hide_all, Me.m_unhide_all})
+        Me.MM.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.m_file, Me.m_explorer, Me.m_help, Me.m_grid, Me.m_hide_all, Me.m_unhide_all, Me.m_show_faces})
         Me.MM.Location = New System.Drawing.Point(0, 0)
         Me.MM.Name = "MM"
         Me.MM.Size = New System.Drawing.Size(871, 24)
@@ -169,6 +170,13 @@ Partial Class frmMain
         Me.tv_state_imagelist.ImageSize = New System.Drawing.Size(16, 16)
         Me.tv_state_imagelist.TransparentColor = System.Drawing.Color.Transparent
         '
+        'm_show_faces
+        '
+        Me.m_show_faces.CheckOnClick = True
+        Me.m_show_faces.Name = "m_show_faces"
+        Me.m_show_faces.Size = New System.Drawing.Size(80, 20)
+        Me.m_show_faces.Text = "Show Faces"
+        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -209,5 +217,6 @@ Partial Class frmMain
     Friend WithEvents m_grid As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents m_hide_all As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents m_unhide_all As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents m_show_faces As System.Windows.Forms.ToolStripMenuItem
 
 End Class

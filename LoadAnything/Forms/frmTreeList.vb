@@ -98,9 +98,16 @@ Public Class frmTreeList
         tv_contents.Nodes.Clear()
         tv_contents.BeginUpdate()
         current_package = ZipFile.Read(n)
+        Dim ec = current_package.Entries.Count
         GC.Collect()
+        '========================
+        Dim st As New Stopwatch
+        st.Start()
         build_tree()
-
+        st.Stop()
+        Dim t = CSng(st.ElapsedMilliseconds / 1000)
+        Debug.WriteLine("TreeView Build Time: " + t.ToString + ".ms")
+        '========================
         tv_contents.EndUpdate()
         tv_contents.Update()
         tv_contents.SelectedNode = Nothing
@@ -150,6 +157,7 @@ Public Class frmTreeList
             If tv_contents.SelectedNode.Name = "dir" Then
                 If MsgBox("You have a Directory Selected" + vbCrLf + _
                         "Do to want to Extract the entire contents?", MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    f = Path.GetDirectoryName(tv_contents.SelectedNode.Tag).Replace("\", "/")
                     For Each item In current_package
                         If item.FileName.Contains(f) Then
                             item.Extract(p, ExtractExistingFileAction.OverwriteSilently)
@@ -158,12 +166,12 @@ Public Class frmTreeList
                     Next
                 End If
                 Return
+            Else
+                Dim item = current_package(tv_contents.SelectedNode.Tag)
+                item.Extract(p, ExtractExistingFileAction.OverwriteSilently)
             End If
-            Dim ent As ZipEntry = current_package(f)
-            ent.Extract(p, ExtractExistingFileAction.OverwriteSilently)
         Catch ex As Exception
         End Try
-
     End Sub
 
     Private Sub m_show_location_Click(sender As Object, e As EventArgs) Handles m_show_location.Click

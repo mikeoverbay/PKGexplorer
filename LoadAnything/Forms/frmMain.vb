@@ -175,16 +175,19 @@ tryagain:
         Gl.glEnable(Gl.GL_DEPTH_TEST)
         Gl.glEnable(Gl.GL_LIGHTING)
         Gl.glDisable(Gl.GL_CULL_FACE)
-
+        Gl.glPolygonOffset(0.5, 1.0)
+        Gl.glDepthRange(0.0, 0.5)
         Gl.glEnable(Gl.GL_SMOOTH)
         Gl.glEnable(Gl.GL_NORMALIZE)
         Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL)
         '-----------------------------------
+        If m_show_faces.Checked Then
+            Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL)
+        End If
+        Gl.glColor3f(0.4!, 0.4!, 0.5!)
         If Not Model_Loaded Then
-            Gl.glColor3f(0.4, 0.4, 0.5)
             Gl.glCallList(coffee_list)
         Else
-            Gl.glColor3f(0.4, 0.4, 0.4)
             Dim cSet = SplitContainer1.Panel1.Controls
             For i = 0 To object_cnt
                 Dim cb As CheckBox = cSet(i)
@@ -193,6 +196,24 @@ tryagain:
                 End If
             Next
         End If
+        If m_show_faces.Checked Then
+            Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL)
+            Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE)
+            Gl.glColor3f(0.0!, 0.0!, 0.0!)
+            If Not Model_Loaded Then
+                Gl.glCallList(coffee_list)
+            Else
+                Dim cSet = SplitContainer1.Panel1.Controls
+                For i = 0 To object_cnt
+                    Dim cb As CheckBox = cSet(i)
+                    If cb.Checked Then
+                        Gl.glCallList(_object(i).d_list)
+                    End If
+                Next
+            End If
+        End If
+        Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE)
+
         '-----------------------------------
         If m_grid.Checked Then
             Gl.glCallList(GRID_id)
@@ -653,6 +674,14 @@ tryagain:
                 Dim cb As CheckBox = c
                 cb.Checked = True
             Next
+        End If
+    End Sub
+
+    Private Sub m_show_faces_Click(sender As Object, e As EventArgs) Handles m_show_faces.Click
+        If m_show_faces.Checked Then
+            m_show_faces.ForeColor = Color.Red
+        Else
+            m_show_faces.ForeColor = Color.Black
         End If
     End Sub
 End Class

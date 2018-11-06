@@ -182,7 +182,11 @@ ByVal text As String, ByVal r As Single, ByVal g As Single, ByVal b As Single, B
     End Sub
     Public Sub ViewPerspective()
         ' Set Up A Perspective View
-
+        If bounding_size < 10 Then
+            far_Clip = 150.0!
+        Else
+            far_Clip = 8000.0!
+        End If
         Gl.glMatrixMode(Gl.GL_PROJECTION) 'Select Projection
         Gl.glLoadIdentity()
 

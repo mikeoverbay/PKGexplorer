@@ -96,6 +96,12 @@ Module modModelLoader
 #End Region
 
     Public Sub loadmodel(ByVal ms As MemoryStream)
+        x_max = -10000
+        x_min = 10000
+        y_max = -10000
+        y_min = 10000
+        z_max = -10000
+        z_min = 10000
         If Model_Loaded Then
             For i = 0 To object_cnt
                 If _object(i).d_list > 0 Then
@@ -346,6 +352,7 @@ Module modModelLoader
                         .verts(cnt).x = Vrd.ReadSingle
                         .verts(cnt).y = Vrd.ReadSingle
                         .verts(cnt).z = Vrd.ReadSingle
+                        check_Bounds(.verts(cnt))
                         If realNormals Then
                             .norms(cnt).x = Vrd.ReadSingle
                             .norms(cnt).y = Vrd.ReadSingle
@@ -416,6 +423,7 @@ Module modModelLoader
             Next
 
         Next
+        bounding_size = (-x_min + x_max + -y_min + y_max + -z_min + z_max) / 3.0!
         GC.Collect()
         ms.Dispose()
         Model_Loaded = True
@@ -447,12 +455,17 @@ Module modModelLoader
 
             Gl.glEnd()
             Gl.glEndList()
-
-
-
         End With
 
+    End Sub
+    Private Sub check_Bounds(ByVal v As vect3)
+        If v.x > x_max Then x_max = v.x
+        If v.y > y_max Then y_max = v.y
+        If v.z > z_max Then z_max = v.z
 
+        If v.x < x_min Then x_min = v.x
+        If v.y < y_min Then y_min = v.y
+        If v.z < z_min Then z_min = v.z
     End Sub
     Private Function unpackNormal_8_8_8(ByVal packed As UInt32) As vect3
         'Console.WriteLine(packed.ToString("x"))
