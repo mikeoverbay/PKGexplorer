@@ -36,12 +36,19 @@ Module modModelLoader
         Public sizes() As UInt32
         Public v_data() As Byte
         Public i_data() As Byte
+        Public uv2_data() As Byte
+        Public has_uv2 As Boolean
     End Structure
 
     Public section_names(30) As String
     Dim section_sizes(30) As UInt32
     Dim section_locations(30) As UInt32
     Dim section_data(30) As data_
+    Dim sub_group_data(30) As sub_group_data_
+    Public Structure sub_group_data_
+        Public has_uv2 As Boolean
+        Public uv2_data() As Byte
+    End Structure
     Public Structure data_
         Public data() As Byte
     End Structure
@@ -82,8 +89,11 @@ Module modModelLoader
         Public verts() As vect3
         Public norms() As vect3
         Public uvs() As uvs
+        Public uv2s() As uvs
+        Public has_uv2 As Boolean
         Public Cnt As Integer
         Public d_list As Integer
+        Public hiden As Boolean
     End Structure
     Public Structure uvs
         Public u, v As Single
@@ -125,6 +135,7 @@ Module modModelLoader
         ReDim Preserve section_locations(30)
         ReDim Preserve section_names(30)
         ReDim Preserve section_data(30)
+        ReDim sub_group_data(30)
         ReDim sections(30)
         '========================================================
         'get table at the end of the primitives file
@@ -163,6 +174,7 @@ Module modModelLoader
         Next
         '========================================================
         '========================================================
+        Dim uv2_data(1) As Byte
         Dim sub_groups As Integer = 0
         Dim section_id As Integer = 0
         Dim id As Integer = 0
@@ -204,13 +216,25 @@ Module modModelLoader
                 ReDim sections(id).i_data(section_sizes(i))
                 sections(id).i_data = rd.ReadBytes(section_sizes(i))
             End If
+            If f_name_uv2 = section_names(i) Then
+                sub_group_data(sub_groups - 1) = New sub_group_data_
+                sub_group_data(sub_groups - 1).has_uv2 = True
+                ms.Position = section_locations(i)
+                ReDim sub_group_data(sub_groups - 1).uv2_data(section_sizes(i))
+                sub_group_data(sub_groups - 1).uv2_data = rd.ReadBytes(section_sizes(i))
+            End If
+
             If rc = 2 Then
                 rc = 0
                 sub_groups += 1
+                ReDim Preserve sub_group_data(sub_groups)
             End If
         Next
         ReDim Preserve sections(sub_groups)
         Dim pk As Long = rd.BaseStream.Position
+
+        Dim uv2ms As MemoryStream
+        Dim uv2_data_reader As BinaryReader
 
         For gCnt = 0 To sub_groups - 1
             Dim Ims As New MemoryStream(sections(gCnt).i_data)
@@ -220,6 +244,13 @@ Module modModelLoader
 
             f_name_indices = sections(gCnt).i_name
             f_name_vertices = sections(gCnt).v_name
+            If sub_group_data(gCnt).has_uv2 Then
+                has_uv2 = True
+                uv2ms = New MemoryStream(sub_group_data(gCnt).uv2_data)
+                uv2_data_reader = New BinaryReader(uv2ms)
+            Else
+                has_uv2 = False
+            End If
             Dim cr As Byte
             Dim dr As Boolean = False
             For i = 0 To 63
@@ -309,6 +340,7 @@ Module modModelLoader
             object_start = gCnt
             big_l = ih.nInd_groups 'get object count
 
+
             For k As UInt32 = object_start To ((ih.nInd_groups - 1) + gCnt)
                 If pGroups(k - object_start).nPrimitives_ = 0 Then
                     'Exit For
@@ -337,6 +369,13 @@ Module modModelLoader
                 ReDim _object(k).verts(pos)
                 ReDim _object(k).norms(pos)
                 ReDim _object(k).uvs(pos)
+                If has_uv2 Then
+                    _object(k).has_uv2 = True
+                    ReDim _object(k).uv2s(pos)
+                Else
+                    _object(k).has_uv2 = False
+                    ReDim _object(k).uv2s(0)
+                End If
                 If BPVT_mode Then
                     'Vrd.BaseStream.Position = 132
                 End If
@@ -348,6 +387,9 @@ Module modModelLoader
                         .verts(cnt) = New vect3
                         .norms(cnt) = New vect3
                         .uvs(cnt) = New uvs
+                        If has_uv2 Then
+                            .uv2s(cnt) = New uvs
+                        End If
 
                         .verts(cnt).x = Vrd.ReadSingle
                         .verts(cnt).y = Vrd.ReadSingle
@@ -372,6 +414,10 @@ Module modModelLoader
                         End If
                         .uvs(cnt).u = Vrd.ReadSingle
                         .uvs(cnt).v = Vrd.ReadSingle
+                        If has_uv2 Then
+                            .uv2s(cnt).u = uv2_data_reader.ReadSingle
+                            .uv2s(cnt).v = uv2_data_reader.ReadSingle
+                        End If
                         If stride = 37 Or stride = 40 Then
                             Vrd.ReadByte() 'indexes
                             Vrd.ReadByte()

@@ -193,6 +193,9 @@ tryagain:
                 Dim cb As CheckBox = cSet(i)
                 If cb.Checked Then
                     Gl.glCallList(_object(i).d_list)
+                    _object(i).hiden = False
+                Else
+                    _object(i).hiden = True
                 End If
             Next
         End If
@@ -208,6 +211,9 @@ tryagain:
                     Dim cb As CheckBox = cSet(i)
                     If cb.Checked Then
                         Gl.glCallList(_object(i).d_list)
+                        _object(i).hiden = False
+                    Else
+                        _object(i).hiden = True
                     End If
                 Next
             End If
@@ -683,5 +689,11 @@ tryagain:
         Else
             m_show_faces.ForeColor = Color.Black
         End If
+    End Sub
+
+
+    Private Sub m_export_fbx_Click(sender As Object, e As EventArgs) Handles m_export_fbx.Click
+        If Not Model_Loaded Then Return
+        frmFBX.ShowDialog()
     End Sub
 End Class

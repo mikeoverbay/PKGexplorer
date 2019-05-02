@@ -5,6 +5,13 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.0.4
+Added FBX for loaded models.
+UVs and also the UV2s(2nd texture coordinate set) is exported.
+A material is created for each part with NO textures.
+Hiden parts in the view window are not exported to the FBX.
+Tanks are best exported using Tank Exporter.
+
 ## Version 1.0.0.3
 Fixed a stupid bug in extracting data.
 

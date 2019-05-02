@@ -77,6 +77,18 @@ Namespace My
                 Me("extract_location") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\")>  _
+        Public Property fbx_path() As String
+            Get
+                Return CType(Me("fbx_path"),String)
+            End Get
+            Set
+                Me("fbx_path") = value
+            End Set
+        End Property
     End Class
 End Namespace
 
