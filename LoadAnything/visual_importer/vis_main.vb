@@ -174,7 +174,7 @@ remove_more:
             xmldataset.ReadXml(fileS)
 
         Catch ex As Exception
-            MsgBox("Please report this bug." + ex.Message, MsgBoxStyle.Exclamation, "packed XML file Error...")
+            'MsgBox("Please report this bug." + ex.Message, MsgBoxStyle.Exclamation, "packed XML file Error...")
         End Try
         'Dim sw As New StringWriter
         'Dim xtw As New XmlTextWriter(sw)

@@ -56,7 +56,7 @@ Public Class frmFBX
 
 
         scene = FbxScene.Create(pManager, filename)
-        scene.SceneInfo.Author = "Exported using Coffee_'s PKG Explore"
+        scene.SceneInfo.Author = "Exported using Coffee_'s PKG Explorer"
         scene.SceneInfo.Comment = "File: " + file_name
 
         rootNode = scene.RootNode
@@ -83,15 +83,16 @@ Public Class frmFBX
             ReDim Preserve node_list(id + 1)
             node_list(id) = FbxNode.Create(pManager, id.ToString)
 
+            'Each mesh must have a unique name
             Dim mymesh = fbx_create_mesh(model_name + ":" + id.ToString("00"), id, pManager)
 
             Dim dr, ds, dt As New FbxVector4
             dr.Set(0, 0, 0, 0)
             ds.Set(1, 1, 1, 0)
             dt.Set(0, 0, 0, 1)
-            node_list(id).SetDefaultR(dr)
-            node_list(id).SetDefaultS(ds)
-            node_list(id).SetDefaultT(dt)
+            node_list(id).SetDefaultR(dr) 'rotation
+            node_list(id).SetDefaultS(ds) 'scale
+            node_list(id).SetDefaultT(dt) 'translation
 
             Dim layercontainer As FbxLayerContainer = mymesh
             Dim layerElementTexture As FbxLayerElementTexture = layercontainer.GetLayer(0).DiffuseTextures

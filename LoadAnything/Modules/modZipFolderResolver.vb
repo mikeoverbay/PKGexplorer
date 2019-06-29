@@ -100,11 +100,13 @@ Module modZipFolderResolver
         Dim isDir As Boolean = False ' flag for setting up image index
         For Each ent In current_package
             Dim ext = Path.GetExtension(ent.FileName)
-            If ext.Length > 0 Then 'is this entry a file or directory?
-                isDir = False
-            Else
-                isDir = True
-            End If
+            'Debug.WriteLine(ent.FileName + "  " + ent.IsDirectory.ToString)
+            isDir = ent.IsDirectory
+            'If ext.Length > 0 Then 'is this entry a file or directory?
+            '    isDir = False
+            'Else
+            '    isDir = True
+            'End If
             Dim a = ent.FileName.Split("/")
             For i = 0 To 8 ' 8 levels deep enough?
                 If a.Length > 7 Then
@@ -112,7 +114,7 @@ Module modZipFolderResolver
                     Exit For
                 End If
                 If a.Length = 2 Then
-                    Exit For
+                    'Exit For
                 End If
                 If i > a.Length - 1 Then
                     Exit For

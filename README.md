@@ -5,6 +5,9 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.0.5
+This fixes a bug with all files not showing in the in the view tree when a pkg is selected in the left list.
+
 ## Version 1.0.0.4
 Added FBX for loaded models.
 UVs and also the UV2s(2nd texture coordinate set) is exported.
