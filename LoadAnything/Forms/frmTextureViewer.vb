@@ -36,7 +36,8 @@ Public Class frmTextureViewer
         frmTreeList.Focus()
     End Sub
     Private Sub frmTextureViewer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-
+        alpha_enable_cb.Parent = Me
+        alpha_enable_cb.BringToFront()
 
 
     End Sub
@@ -56,7 +57,7 @@ Public Class frmTextureViewer
         rect_size = New Point(w, h)
         frmMain.pb2.Parent = Me
         frmMain.pb2.Visible = True
-        frmMain.pb2.BringToFront()
+        frmMain.PB2.SendToBack()
         frmMain.pb2.Dock = DockStyle.Fill
         frmMain.pb2.Location = New Point(0, 0)
         rect_location = New Point((frmMain.pb2.Width - rect_size.X) / 2, (frmMain.pb2.Height - rect_size.Y) / 2)
@@ -86,6 +87,12 @@ Public Class frmTextureViewer
         Gl.glClear(Gl.GL_COLOR_BUFFER_BIT Or Gl.GL_DEPTH_BUFFER_BIT)
         '#######################################################################################
         'draw checkboard background
+        If alpha_enable_cb.Checked Then
+            Gl.glEnable(Gl.GL_BLEND)
+            Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA)
+        Else
+            Gl.glDisable(Gl.GL_BLEND)
+        End If
         Gl.glEnable(Gl.GL_TEXTURE_2D)
         Gl.glBindTexture(Gl.GL_TEXTURE_2D, checkerboard_id)
 
@@ -159,5 +166,9 @@ Public Class frmTextureViewer
         draw()
         Application.DoEvents()
 
+    End Sub
+
+    Private Sub alpha_enable_cb_CheckedChanged(sender As Object, e As EventArgs) Handles alpha_enable_cb.CheckedChanged
+        draw()
     End Sub
 End Class

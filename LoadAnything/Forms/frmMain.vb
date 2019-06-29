@@ -33,6 +33,9 @@ Public Class frmMain
 #Region "frmMain events"
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles Me.Load
+        My.Settings.Upgrade() ' upgrades to keep old settings
+
+
         Dim nonInvariantCulture As CultureInfo = New CultureInfo("en-US")
         nonInvariantCulture.NumberFormat.NumberDecimalSeparator = "."
         Thread.CurrentThread.CurrentCulture = nonInvariantCulture

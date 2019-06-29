@@ -93,7 +93,8 @@ Module modTextures
             'Ilu.iluMirror()
             Dim width As Integer = Il.ilGetInteger(Il.IL_IMAGE_WIDTH)
             Dim height As Integer = Il.ilGetInteger(Il.IL_IMAGE_HEIGHT)
-
+            Dim format = Il.ilGetInteger(Il.IL_IMAGE_FORMAT)
+            Il.ilConvertImage(Il.IL_RGBA, Il.IL_UNSIGNED_BYTE)
 
             'If your image contains alpha channel you can replace IL_RGB with IL_RGBA */
             'If make_id Then
