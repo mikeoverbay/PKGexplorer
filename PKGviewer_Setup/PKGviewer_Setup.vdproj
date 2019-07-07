@@ -989,7 +989,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:PKG Explorer"
         "ProductCode" = "8:{2E86C85D-03F9-4FE3-897E-A61CBD620EF8}"
-        "PackageCode" = "8:{F3018E65-EC10-4D06-AF63-65DCE9024374}"
+        "PackageCode" = "8:{326DD19E-F09B-40CB-9777-FFB9B9BC4892}"
         "UpgradeCode" = "8:{29CFECFE-8161-47E3-BBF2-177B142682C9}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1500,7 +1500,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_4A56F6D2FF1F4B4AA04E834D7FB7AB68"
             {
-            "SourcePath" = "8:..\\LoadAnything\\obj\\x86\\Debug\\PKGviewer.exe"
+            "SourcePath" = "8:..\\LoadAnything\\obj\\x86\\Release\\PKGviewer.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72FCF93964C9423087E5613FB19C7C59"
