@@ -59,6 +59,10 @@ Public Class frmTreeList
             extract_location.Text = My.Settings.extract_location
         End If
         MM_FB.Enabled = True
+        tv_contents.Dock = DockStyle.Fill
+        Panel1.Dock = DockStyle.Fill
+        Panel1.Visible = False
+        tv_contents.Visible = True
 
     End Sub
     Public Sub populate_tree()
@@ -264,5 +268,110 @@ Public Class frmTreeList
 
     Private Sub MM_FB_MouseEnter(sender As Object, e As EventArgs) Handles MM_FB.MouseEnter
         Me.Focus()
+    End Sub
+    Dim PKGS(150) As String
+    Dim p_files(1000000) As String
+    Dim folders(150) As String
+    Dim cnt As Integer = 0
+    Dim p_cnt As Integer = 0
+    Dim f_cnt As Integer
+
+    Private Sub m_find_all_Click(sender As Object, e As EventArgs) Handles m_find_all.Click
+        If tv_contents.SelectedNode Is Nothing Then
+            Return
+        End If
+        m_extract.Enabled = False
+        'tv_filenames.Enabled = False
+        tv_contents.Visible = False
+        Panel1.Visible = True
+        files_tb.Text = ""
+        Label1.Text = "Looking for: " = tv_contents.SelectedNode.Text
+        Application.DoEvents()
+        Dim iPath = My.Settings.game_path
+        Dim f_info = Directory.GetFiles(iPath)
+
+        ReDim PKGS(150)
+        ReDim p_files(1000000)
+        ReDim folders(150)
+        cnt = 0
+        p_cnt = 0
+        f_cnt = 0
+
+        'first, lets get a list of all the map files.
+        For Each m In f_info
+            If m.Contains(".pkg") Then
+                PKGS(cnt) = m
+                cnt += 1
+            End If
+
+        Next
+        ReDim Preserve PKGS(cnt - 1)
+        For i = 0 To cnt - 1
+            Dim in_f As Boolean = False
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If item.FileName.Contains(tv_contents.SelectedNode.Text) Then
+                        ' item.Extract(oPath, ExtractExistingFileAction.OverwriteSilently)
+                        If Not item.IsDirectory Then 'dont want empty directories
+                            If Not in_f Then
+                                folders(f_cnt) = Path.GetFileName(z.Name)
+                                f_cnt += 1
+                                in_f = True
+                            End If
+                            p_files(p_cnt) = item.FileName
+                            p_cnt += 1
+                            files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
+                        End If
+                        Application.DoEvents()
+                    End If
+                Next
+            End Using
+        Next
+        GC.Collect() 'clean up trash to free memory!
+        files_tb.Text = ""
+        ReDim Preserve p_files(p_cnt - 1)
+        For i = 0 To p_cnt - 1
+            files_tb.Text += p_files(i) + vbCrLf
+        Next
+        files_tb.Text += "=================================" + vbCrLf + "In PKG files:" + vbCrLf
+        ReDim Preserve folders(f_cnt - 1)
+        For i = 0 To f_cnt - 1
+            files_tb.Text += folders(i) + vbCrLf
+        Next
+        files_tb.SelectedText = Nothing
+        files_tb.SelectionStart = 0
+        files_tb.SelectionLength = 0
+        Label1.Text = "Found: " + p_cnt.ToString + " Files Matching Folder Name"
+        Application.DoEvents()
+        close_btn.Focus()
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles close_btn.Click
+        tv_contents.Visible = True
+        Panel1.Visible = False
+        Application.DoEvents()
+        tv_contents.Invalidate()
+        Application.DoEvents()
+        m_extract.Enabled = True
+        tv_filenames.Enabled = True
+    End Sub
+
+    Private Sub extract_btn_Click(sender As Object, e As EventArgs) Handles extract_btn.Click
+        For i = 0 To cnt - 1
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If item.FileName.Contains(tv_contents.SelectedNode.Text) Then
+                        If Not item.IsDirectory Then 'dont want empty directories
+                            item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
+                        End If
+                        Application.DoEvents()
+                    End If
+                Next
+            End Using
+        Next
+        Label1.Text = "Extracted: " + p_cnt.ToString + " Files"
+        Application.DoEvents()
+        close_btn.Focus()
+
     End Sub
 End Class

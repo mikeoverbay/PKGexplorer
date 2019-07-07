@@ -5,6 +5,9 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.0.6
+Added code to search, find and extract every item related to a folders name. Very useful for finding all parts of a tank, building or other item.
+
 ## Version 1.0.0.5
 This fixes a bug with all files not showing in the in the view tree when a pkg is selected in the left list.
 
