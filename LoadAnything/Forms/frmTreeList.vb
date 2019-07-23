@@ -30,6 +30,7 @@ Imports System.Globalization
 Public Class frmTreeList
     Private tv_loading_1, tv_loading_2 As Boolean
     Dim ignorelist() = {".pyc", "def", ".xml"}
+    Dim search_text As String
 
     Private Sub frmTreeList_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         e.Cancel = True
@@ -130,12 +131,16 @@ Public Class frmTreeList
         If tv_contents.SelectedNode.Text.Contains(".primitive") Then
             file_name = tv_contents.SelectedNode.Text
         End If
+        If Not tv_contents.SelectedNode.Name = "dir" Then
+            m_search_text.Text = Path.GetFileName(tv_contents.SelectedNode.Text)
+        End If
     End Sub
 
     Private Sub tv_contents_NodeMouseClick(sender As Object, e As TreeNodeMouseClickEventArgs) Handles tv_contents.NodeMouseClick
     End Sub
 
     Private Sub m_set_extract_path_click(sender As Object, e As EventArgs) Handles m_set_extract_path.Click
+        FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
             My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
             My.Settings.Save()
@@ -280,19 +285,22 @@ Public Class frmTreeList
         If tv_contents.SelectedNode Is Nothing Then
             Return
         End If
+        RemoveHandler extract_btn.Click, AddressOf extract_btn_text_extract
+        RemoveHandler extract_btn.Click, AddressOf extract_btn_find_extract
+        AddHandler extract_btn.Click, AddressOf extract_btn_find_extract
         m_extract.Enabled = False
         'tv_filenames.Enabled = False
         tv_contents.Visible = False
         Panel1.Visible = True
         files_tb.Text = ""
-        Label1.Text = "Looking for: " = tv_contents.SelectedNode.Text
+        Label1.Text = "Looking for: " + tv_contents.SelectedNode.Text
         Application.DoEvents()
         Dim iPath = My.Settings.game_path
         Dim f_info = Directory.GetFiles(iPath)
 
         ReDim PKGS(150)
         ReDim p_files(1000000)
-        ReDim folders(150)
+        ReDim folders(150000)
         cnt = 0
         p_cnt = 0
         f_cnt = 0
@@ -329,15 +337,19 @@ Public Class frmTreeList
         Next
         GC.Collect() 'clean up trash to free memory!
         files_tb.Text = ""
+        Dim s As New StringBuilder
         ReDim Preserve p_files(p_cnt - 1)
         For i = 0 To p_cnt - 1
-            files_tb.Text += p_files(i) + vbCrLf
+            s.AppendLine(p_files(i))
         Next
+        files_tb.Text = s.ToString
         files_tb.Text += "=================================" + vbCrLf + "In PKG files:" + vbCrLf
         ReDim Preserve folders(f_cnt - 1)
+        s.Clear()
         For i = 0 To f_cnt - 1
-            files_tb.Text += folders(i) + vbCrLf
+            s.AppendLine(folders(i))
         Next
+        files_tb.Text += s.ToString
         files_tb.SelectedText = Nothing
         files_tb.SelectionStart = 0
         files_tb.SelectionLength = 0
@@ -356,13 +368,17 @@ Public Class frmTreeList
         tv_filenames.Enabled = True
     End Sub
 
-    Private Sub extract_btn_Click(sender As Object, e As EventArgs) Handles extract_btn.Click
+    Private Sub extract_btn_find_extract(sender As Object, e As EventArgs) Handles extract_btn.Click
+        RemoveHandler extract_btn.Click, AddressOf extract_btn_find_extract
+        extract_btn.Enabled = False
         For i = 0 To cnt - 1
             Using z As New Ionic.Zip.ZipFile(PKGS(i))
                 For Each item In z
                     If item.FileName.Contains(tv_contents.SelectedNode.Text) Then
                         If Not item.IsDirectory Then 'dont want empty directories
                             item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
+                            Label1.Text = "Extracted: " + item.FileName
+                            Application.DoEvents()
                         End If
                         Application.DoEvents()
                     End If
@@ -372,6 +388,121 @@ Public Class frmTreeList
         Label1.Text = "Extracted: " + p_cnt.ToString + " Files"
         Application.DoEvents()
         close_btn.Focus()
+        extract_btn.Enabled = True
+
+    End Sub
+    Private Sub extract_btn_text_extract(sender As Object, e As EventArgs) Handles extract_btn.Click
+        RemoveHandler extract_btn.Click, AddressOf extract_btn_text_extract
+        extract_btn.Enabled = False
+        For i = 0 To cnt - 1
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If Path.GetFileName(item.FileName).ToLower = search_text.ToLower Then
+                        If Not item.IsDirectory Then 'dont want empty directories
+                            item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
+                            Label1.Text = "Extracted: " + item.FileName
+                            Application.DoEvents()
+                        End If
+                        Application.DoEvents()
+                    End If
+                Next
+            End Using
+        Next
+        Label1.Text = "Extracted: " + p_cnt.ToString + " Files"
+        Application.DoEvents()
+        close_btn.Focus()
+        extract_btn.Enabled = True
+
+    End Sub
+
+    Private Sub m_search_text_KeyUp(sender As Object, e As KeyEventArgs) Handles m_search_text.KeyUp
+        If e.KeyCode = Keys.Enter Then
+            m_find_text(m_search_text.Text)
+        End If
+    End Sub
+
+    Private Sub m_search_text_MouseDown(sender As Object, e As MouseEventArgs) Handles m_search_text.MouseDown
+        If m_search_text.Text = "(type here..press enter)" Then
+            m_search_text.Text = ""
+        End If
+    End Sub
+    Private Sub m_find_text(ByVal s_str As String)
+        'dont search for blank strings;
+        If s_str = "" Or s_str = " " Then Return
+        RemoveHandler extract_btn.Click, AddressOf extract_btn_text_extract
+        RemoveHandler extract_btn.Click, AddressOf extract_btn_find_extract
+        AddHandler extract_btn.Click, AddressOf extract_btn_text_extract
+        search_text = s_str
+        m_extract.Enabled = False
+        'tv_filenames.Enabled = False
+        tv_contents.Visible = False
+        Panel1.Visible = True
+        files_tb.Text = ""
+        Label1.Text = "Looking for: " + s_str
+        Application.DoEvents()
+        Dim iPath = My.Settings.game_path
+        Dim f_info = Directory.GetFiles(iPath)
+
+        ReDim PKGS(150)
+        ReDim p_files(1000000)
+        ReDim folders(1500)
+        cnt = 0
+        p_cnt = 0
+        f_cnt = 0
+
+        'first, lets get a list of all the map files.
+        For Each m In f_info
+            If m.Contains(".pkg") Then
+                PKGS(cnt) = m
+                cnt += 1
+            End If
+
+        Next
+        ReDim Preserve PKGS(cnt - 1)
+        For i = 0 To cnt - 1
+            Dim in_f As Boolean = False
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If Not item.IsDirectory Then 'dont want empty directories
+                        If Path.GetFileName(item.FileName).ToLower = s_str.ToLower Then
+                            If Not in_f Then
+                                folders(f_cnt) = Path.GetFileName(z.Name)
+                                f_cnt += 1
+                                in_f = True
+                            End If
+                            p_files(p_cnt) = item.FileName
+                            p_cnt += 1
+                            files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
+                            Application.DoEvents()
+                        End If
+                    End If
+                Next
+            End Using
+        Next
+        GC.Collect() 'clean up trash to free memory!
+        files_tb.Text = ""
+        Dim s As New StringBuilder
+        ReDim Preserve p_files(p_cnt - 1)
+        For i = 0 To p_cnt - 1
+            s.AppendLine(p_files(i))
+        Next
+        files_tb.Text = s.ToString
+        files_tb.Text += "=================================" + vbCrLf + "In PKG files:" + vbCrLf
+        ReDim Preserve folders(f_cnt - 1)
+        s.Clear()
+        For i = 0 To f_cnt - 1
+            s.AppendLine(folders(i))
+        Next
+        files_tb.Text += s.ToString
+        files_tb.SelectedText = Nothing
+        files_tb.SelectionStart = 0
+        files_tb.SelectionLength = 0
+        Label1.Text = "Found: " + p_cnt.ToString + " Files Matching Folder Name"
+        Application.DoEvents()
+        close_btn.Focus()
+    End Sub
+
+    Private Sub m_search_text_Click(sender As Object, e As EventArgs) Handles m_search_text.Click
 
     End Sub
 End Class

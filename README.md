@@ -5,6 +5,12 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.0.7
+Add a text based seach function.</br>
+Enter the text and press enter.</br>
+Clicking on a itme in the expanded treeview will file the textbox.</br>
+After, click on the text box and press enter.
+
 ## Version 1.0.0.6
 Added code to search, find and extract every item related to a folders name. Very useful for finding all parts of a tank, building or other item.
 

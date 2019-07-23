@@ -25,26 +25,28 @@ Partial Class frmTreeList
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmTreeList))
         Me.SplitContainer1 = New System.Windows.Forms.SplitContainer()
         Me.tv_filenames = New System.Windows.Forms.TreeView()
+        Me.Panel1 = New System.Windows.Forms.Panel()
+        Me.close_btn = New System.Windows.Forms.Button()
+        Me.extract_btn = New System.Windows.Forms.Button()
+        Me.files_tb = New System.Windows.Forms.TextBox()
+        Me.Label1 = New System.Windows.Forms.Label()
         Me.tv_contents = New System.Windows.Forms.TreeView()
         Me.MM_FB = New System.Windows.Forms.MenuStrip()
         Me.m_set_extract_path = New System.Windows.Forms.ToolStripMenuItem()
         Me.extract_location = New System.Windows.Forms.ToolStripTextBox()
         Me.m_view_item = New System.Windows.Forms.ToolStripMenuItem()
         Me.m_extract = New System.Windows.Forms.ToolStripMenuItem()
-        Me.m_show_location = New System.Windows.Forms.ToolStripMenuItem()
-        Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         Me.m_find_all = New System.Windows.Forms.ToolStripMenuItem()
-        Me.Panel1 = New System.Windows.Forms.Panel()
-        Me.Label1 = New System.Windows.Forms.Label()
-        Me.files_tb = New System.Windows.Forms.TextBox()
-        Me.extract_btn = New System.Windows.Forms.Button()
-        Me.close_btn = New System.Windows.Forms.Button()
+        Me.m_show_location = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripTextBox1 = New System.Windows.Forms.ToolStripTextBox()
+        Me.m_search_text = New System.Windows.Forms.ToolStripTextBox()
+        Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SplitContainer1.Panel1.SuspendLayout()
         Me.SplitContainer1.Panel2.SuspendLayout()
         Me.SplitContainer1.SuspendLayout()
-        Me.MM_FB.SuspendLayout()
         Me.Panel1.SuspendLayout()
+        Me.MM_FB.SuspendLayout()
         Me.SuspendLayout()
         '
         'SplitContainer1
@@ -78,66 +80,6 @@ Partial Class frmTreeList
         Me.tv_filenames.Size = New System.Drawing.Size(300, 428)
         Me.tv_filenames.TabIndex = 0
         '
-        'tv_contents
-        '
-        Me.tv_contents.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.tv_contents.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.tv_contents.ForeColor = System.Drawing.Color.White
-        Me.tv_contents.Location = New System.Drawing.Point(49, 176)
-        Me.tv_contents.Name = "tv_contents"
-        Me.tv_contents.Size = New System.Drawing.Size(267, 252)
-        Me.tv_contents.TabIndex = 0
-        '
-        'MM_FB
-        '
-        Me.MM_FB.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.m_set_extract_path, Me.extract_location, Me.m_view_item, Me.m_extract, Me.m_find_all, Me.m_show_location})
-        Me.MM_FB.Location = New System.Drawing.Point(0, 0)
-        Me.MM_FB.Name = "MM_FB"
-        Me.MM_FB.Size = New System.Drawing.Size(728, 24)
-        Me.MM_FB.TabIndex = 1
-        Me.MM_FB.Text = "MenuStrip1"
-        '
-        'm_set_extract_path
-        '
-        Me.m_set_extract_path.Name = "m_set_extract_path"
-        Me.m_set_extract_path.Size = New System.Drawing.Size(133, 20)
-        Me.m_set_extract_path.Text = "Set Extract to location"
-        '
-        'extract_location
-        '
-        Me.extract_location.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
-        Me.extract_location.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.extract_location.ForeColor = System.Drawing.Color.White
-        Me.extract_location.Name = "extract_location"
-        Me.extract_location.Size = New System.Drawing.Size(100, 20)
-        Me.extract_location.Text = "Path is Not set!"
-        Me.extract_location.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        '
-        'm_view_item
-        '
-        Me.m_view_item.Name = "m_view_item"
-        Me.m_view_item.Size = New System.Drawing.Size(71, 20)
-        Me.m_view_item.Text = "View Item"
-        '
-        'm_extract
-        '
-        Me.m_extract.Name = "m_extract"
-        Me.m_extract.Size = New System.Drawing.Size(54, 20)
-        Me.m_extract.Text = "Extract"
-        '
-        'm_show_location
-        '
-        Me.m_show_location.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
-        Me.m_show_location.Name = "m_show_location"
-        Me.m_show_location.Size = New System.Drawing.Size(135, 20)
-        Me.m_show_location.Text = "Open Extract Location"
-        '
-        'm_find_all
-        '
-        Me.m_find_all.Name = "m_find_all"
-        Me.m_find_all.Size = New System.Drawing.Size(59, 20)
-        Me.m_find_all.Text = "Find All"
-        '
         'Panel1
         '
         Me.Panel1.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
@@ -152,14 +94,27 @@ Partial Class frmTreeList
         Me.Panel1.TabIndex = 1
         Me.Panel1.Visible = False
         '
-        'Label1
+        'close_btn
         '
-        Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(3, 5)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(99, 13)
-        Me.Label1.TabIndex = 0
-        Me.Label1.Text = "Found these Files..."
+        Me.close_btn.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.close_btn.ForeColor = System.Drawing.Color.Black
+        Me.close_btn.Location = New System.Drawing.Point(12, 119)
+        Me.close_btn.Name = "close_btn"
+        Me.close_btn.Size = New System.Drawing.Size(93, 23)
+        Me.close_btn.TabIndex = 3
+        Me.close_btn.Text = "Close"
+        Me.close_btn.UseVisualStyleBackColor = True
+        '
+        'extract_btn
+        '
+        Me.extract_btn.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.extract_btn.ForeColor = System.Drawing.Color.Black
+        Me.extract_btn.Location = New System.Drawing.Point(188, 119)
+        Me.extract_btn.Name = "extract_btn"
+        Me.extract_btn.Size = New System.Drawing.Size(93, 23)
+        Me.extract_btn.TabIndex = 2
+        Me.extract_btn.Text = "Extract Them"
+        Me.extract_btn.UseVisualStyleBackColor = True
         '
         'files_tb
         '
@@ -177,34 +132,100 @@ Partial Class frmTreeList
         Me.files_tb.TabIndex = 1
         Me.files_tb.WordWrap = False
         '
-        'extract_btn
+        'Label1
         '
-        Me.extract_btn.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.extract_btn.ForeColor = System.Drawing.Color.Black
-        Me.extract_btn.Location = New System.Drawing.Point(188, 119)
-        Me.extract_btn.Name = "extract_btn"
-        Me.extract_btn.Size = New System.Drawing.Size(93, 23)
-        Me.extract_btn.TabIndex = 2
-        Me.extract_btn.Text = "Extract Them"
-        Me.extract_btn.UseVisualStyleBackColor = True
+        Me.Label1.AutoSize = True
+        Me.Label1.Location = New System.Drawing.Point(3, 5)
+        Me.Label1.Name = "Label1"
+        Me.Label1.Size = New System.Drawing.Size(99, 13)
+        Me.Label1.TabIndex = 0
+        Me.Label1.Text = "Found these Files..."
         '
-        'close_btn
+        'tv_contents
         '
-        Me.close_btn.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.close_btn.ForeColor = System.Drawing.Color.Black
-        Me.close_btn.Location = New System.Drawing.Point(12, 119)
-        Me.close_btn.Name = "close_btn"
-        Me.close_btn.Size = New System.Drawing.Size(93, 23)
-        Me.close_btn.TabIndex = 3
-        Me.close_btn.Text = "Close"
-        Me.close_btn.UseVisualStyleBackColor = True
+        Me.tv_contents.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.tv_contents.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.tv_contents.ForeColor = System.Drawing.Color.White
+        Me.tv_contents.Location = New System.Drawing.Point(49, 176)
+        Me.tv_contents.Name = "tv_contents"
+        Me.tv_contents.Size = New System.Drawing.Size(267, 252)
+        Me.tv_contents.TabIndex = 0
+        '
+        'MM_FB
+        '
+        Me.MM_FB.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.m_set_extract_path, Me.extract_location, Me.m_view_item, Me.m_extract, Me.m_find_all, Me.m_show_location, Me.ToolStripTextBox1, Me.m_search_text})
+        Me.MM_FB.Location = New System.Drawing.Point(0, 0)
+        Me.MM_FB.Name = "MM_FB"
+        Me.MM_FB.Size = New System.Drawing.Size(811, 27)
+        Me.MM_FB.TabIndex = 1
+        Me.MM_FB.Text = "MenuStrip1"
+        '
+        'm_set_extract_path
+        '
+        Me.m_set_extract_path.Name = "m_set_extract_path"
+        Me.m_set_extract_path.Size = New System.Drawing.Size(133, 23)
+        Me.m_set_extract_path.Text = "Set Extract to location"
+        '
+        'extract_location
+        '
+        Me.extract_location.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
+        Me.extract_location.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.extract_location.ForeColor = System.Drawing.Color.White
+        Me.extract_location.Name = "extract_location"
+        Me.extract_location.Size = New System.Drawing.Size(100, 23)
+        Me.extract_location.Text = "Path is Not set!"
+        Me.extract_location.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        '
+        'm_view_item
+        '
+        Me.m_view_item.Name = "m_view_item"
+        Me.m_view_item.Size = New System.Drawing.Size(71, 23)
+        Me.m_view_item.Text = "View Item"
+        '
+        'm_extract
+        '
+        Me.m_extract.Name = "m_extract"
+        Me.m_extract.Size = New System.Drawing.Size(54, 23)
+        Me.m_extract.Text = "Extract"
+        '
+        'm_find_all
+        '
+        Me.m_find_all.Name = "m_find_all"
+        Me.m_find_all.Size = New System.Drawing.Size(59, 23)
+        Me.m_find_all.Text = "Find All"
+        '
+        'm_show_location
+        '
+        Me.m_show_location.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
+        Me.m_show_location.Name = "m_show_location"
+        Me.m_show_location.Size = New System.Drawing.Size(135, 23)
+        Me.m_show_location.Text = "Open Extract Location"
+        '
+        'ToolStripTextBox1
+        '
+        Me.ToolStripTextBox1.AutoSize = False
+        Me.ToolStripTextBox1.Margin = New System.Windows.Forms.Padding(1, 0, 0, 0)
+        Me.ToolStripTextBox1.Name = "ToolStripTextBox1"
+        Me.ToolStripTextBox1.ReadOnly = True
+        Me.ToolStripTextBox1.Size = New System.Drawing.Size(45, 23)
+        Me.ToolStripTextBox1.Text = "Search:"
+        '
+        'm_search_text
+        '
+        Me.m_search_text.AcceptsReturn = True
+        Me.m_search_text.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
+        Me.m_search_text.ForeColor = System.Drawing.Color.White
+        Me.m_search_text.Margin = New System.Windows.Forms.Padding(0, 0, 1, 0)
+        Me.m_search_text.Name = "m_search_text"
+        Me.m_search_text.Size = New System.Drawing.Size(150, 23)
+        Me.m_search_text.Text = "(type here..press enter)"
         '
         'frmTreeList
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(728, 455)
+        Me.ClientSize = New System.Drawing.Size(811, 455)
         Me.Controls.Add(Me.MM_FB)
         Me.Controls.Add(Me.SplitContainer1)
         Me.DoubleBuffered = True
@@ -217,10 +238,10 @@ Partial Class frmTreeList
         Me.SplitContainer1.Panel2.ResumeLayout(False)
         CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.SplitContainer1.ResumeLayout(False)
-        Me.MM_FB.ResumeLayout(False)
-        Me.MM_FB.PerformLayout()
         Me.Panel1.ResumeLayout(False)
         Me.Panel1.PerformLayout()
+        Me.MM_FB.ResumeLayout(False)
+        Me.MM_FB.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -241,4 +262,6 @@ Partial Class frmTreeList
     Friend WithEvents extract_btn As System.Windows.Forms.Button
     Friend WithEvents files_tb As System.Windows.Forms.TextBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
+    Friend WithEvents ToolStripTextBox1 As System.Windows.Forms.ToolStripTextBox
+    Friend WithEvents m_search_text As System.Windows.Forms.ToolStripTextBox
 End Class

@@ -139,7 +139,7 @@ Public Class frmMain
     End Sub
 
     Private Sub set_game_path()
-        FolderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer
+        FolderBrowserDialog1.SelectedPath = My.Settings.game_path
 tryagain:
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
             Dim s = FolderBrowserDialog1.SelectedPath
