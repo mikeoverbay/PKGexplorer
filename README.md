@@ -6,7 +6,7 @@
 #### This is an on going project by me.. Coffee_
 
 ## Version 1.0.0.7
-Add a text based seach function.</br>
+Add a text based search function.</br>
 Enter the text and press enter.</br>
 Clicking on a item in the expanded treeview will fill the textbox.</br>
 After, click on the text box and press enter.
