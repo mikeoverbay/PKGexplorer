@@ -8,7 +8,7 @@
 ## Version 1.0.0.7
 Add a text based seach function.</br>
 Enter the text and press enter.</br>
-Clicking on a itme in the expanded treeview will file the textbox.</br>
+Clicking on a item in the expanded treeview will fill the textbox.</br>
 After, click on the text box and press enter.
 
 ## Version 1.0.0.6
