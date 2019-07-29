@@ -5,6 +5,10 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.08
+Added wild card search to text searching.
+Just add a * to the text either at the start or end of the line.
+
 ## Version 1.0.0.7
 Add a text based search function.</br>
 Enter the text and press enter.</br>

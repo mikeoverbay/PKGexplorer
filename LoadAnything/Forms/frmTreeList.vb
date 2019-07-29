@@ -459,26 +459,51 @@ Public Class frmTreeList
 
         Next
         ReDim Preserve PKGS(cnt - 1)
-        For i = 0 To cnt - 1
-            Dim in_f As Boolean = False
-            Using z As New Ionic.Zip.ZipFile(PKGS(i))
-                For Each item In z
-                    If Not item.IsDirectory Then 'dont want empty directories
-                        If Path.GetFileName(item.FileName).ToLower = s_str.ToLower Then
-                            If Not in_f Then
-                                folders(f_cnt) = Path.GetFileName(z.Name)
-                                f_cnt += 1
-                                in_f = True
+        If s_str.Contains("*") Then
+            s_str = s_str.Replace("*", "")
+            For i = 0 To cnt - 1
+                Dim in_f As Boolean = False
+                Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                    For Each item In z
+                        If Not item.IsDirectory Then 'dont want empty directories
+                            If Path.GetFileName(item.FileName).ToLower.Contains(s_str.ToLower) Then
+                                If Not in_f Then
+                                    folders(f_cnt) = Path.GetFileName(z.Name)
+                                    f_cnt += 1
+                                    in_f = True
+                                End If
+                                p_files(p_cnt) = item.FileName
+                                p_cnt += 1
+                                files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
+                                Application.DoEvents()
                             End If
-                            p_files(p_cnt) = item.FileName
-                            p_cnt += 1
-                            files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
-                            Application.DoEvents()
                         End If
-                    End If
-                Next
-            End Using
-        Next
+                    Next
+                End Using
+            Next
+        Else
+
+            For i = 0 To cnt - 1
+                Dim in_f As Boolean = False
+                Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                    For Each item In z
+                        If Not item.IsDirectory Then 'dont want empty directories
+                            If Path.GetFileName(item.FileName).ToLower = s_str.ToLower Then
+                                If Not in_f Then
+                                    folders(f_cnt) = Path.GetFileName(z.Name)
+                                    f_cnt += 1
+                                    in_f = True
+                                End If
+                                p_files(p_cnt) = item.FileName
+                                p_cnt += 1
+                                files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
+                                Application.DoEvents()
+                            End If
+                        End If
+                    Next
+                End Using
+            Next
+        End If
         GC.Collect() 'clean up trash to free memory!
         files_tb.Text = ""
         Dim s As New StringBuilder
