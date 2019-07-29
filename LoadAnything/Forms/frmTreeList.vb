@@ -522,7 +522,7 @@ Public Class frmTreeList
         files_tb.SelectedText = Nothing
         files_tb.SelectionStart = 0
         files_tb.SelectionLength = 0
-        Label1.Text = "Found: " + p_cnt.ToString + " Files Matching Folder Name"
+        Label1.Text = "Found: " + p_cnt.ToString + " Files Matching " + s_str
         Application.DoEvents()
         close_btn.Focus()
     End Sub
