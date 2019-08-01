@@ -394,20 +394,39 @@ Public Class frmTreeList
     Private Sub extract_btn_text_extract(sender As Object, e As EventArgs) Handles extract_btn.Click
         RemoveHandler extract_btn.Click, AddressOf extract_btn_text_extract
         extract_btn.Enabled = False
-        For i = 0 To cnt - 1
-            Using z As New Ionic.Zip.ZipFile(PKGS(i))
-                For Each item In z
-                    If Path.GetFileName(item.FileName).ToLower = search_text.ToLower Then
-                        If Not item.IsDirectory Then 'dont want empty directories
-                            item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
-                            Label1.Text = "Extracted: " + item.FileName
+        If search_text.Contains("*") Then
+            For i = 0 To cnt - 1
+                Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                    For Each item In z
+                        If Path.GetFileName(item.FileName).ToLower.Contains(search_text.ToLower.Replace("*", "")) Then
+                            If Not item.IsDirectory Then 'dont want empty directories
+                                item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
+                                Label1.Text = "Extracted: " + item.FileName
+                                Application.DoEvents()
+                            End If
                             Application.DoEvents()
                         End If
-                        Application.DoEvents()
-                    End If
-                Next
-            End Using
-        Next
+                    Next
+                End Using
+            Next
+
+        Else
+
+            For i = 0 To cnt - 1
+                Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                    For Each item In z
+                        If Path.GetFileName(item.FileName).ToLower = search_text.ToLower Then
+                            If Not item.IsDirectory Then 'dont want empty directories
+                                item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
+                                Label1.Text = "Extracted: " + item.FileName
+                                Application.DoEvents()
+                            End If
+                            Application.DoEvents()
+                        End If
+                    Next
+                End Using
+            Next
+        End If
         Label1.Text = "Extracted: " + p_cnt.ToString + " Files"
         Application.DoEvents()
         close_btn.Focus()
