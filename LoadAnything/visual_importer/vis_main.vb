@@ -90,70 +90,70 @@ Module vis_main
         fileS.Position = 0
 
         xDoc.AppendChild(xmlroot)
-        Dim Id = xmlroot.Name + "/gameplayTypes"
-        Dim node As XmlElement = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            Dim n2 = node.SelectSingleNode("assault")
-            If n2 IsNot Nothing Then
-                node.RemoveChild(n2)
-            End If
-        End If
-        If node IsNot Nothing Then
-            Dim n2 = node.SelectSingleNode("assault2")
-            If n2 IsNot Nothing Then
-                node.RemoveChild(n2)
-            End If
-        End If
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            Dim n2 = node.SelectSingleNode("domination")
-            If n2 IsNot Nothing Then
-                node.RemoveChild(n2)
-            End If
-        End If
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            Dim n2 = node.SelectSingleNode("fallout")
-            If n2 IsNot Nothing Then
-                node.RemoveChild(n2)
-            End If
-        End If
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            Dim n2 = node.SelectSingleNode("fallout2")
-            If n2 IsNot Nothing Then
-                node.RemoveChild(n2)
-            End If
-        End If
-        Id = xmlroot.Name + "/trees"
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            node.ParentNode.RemoveChild(node)
-        End If
-        Id = xmlroot.Name + "/fallingAtoms"
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            node.ParentNode.RemoveChild(node)
-        End If
-        Id = xmlroot.Name + "/turret0/armor"
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            node.ParentNode.RemoveChild(node)
-        End If
+        'Dim Id = xmlroot.Name + "/gameplayTypes"
+        'Dim node As XmlElement = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    Dim n2 = node.SelectSingleNode("assault")
+        '    If n2 IsNot Nothing Then
+        '        node.RemoveChild(n2)
+        '    End If
+        'End If
+        'If node IsNot Nothing Then
+        '    Dim n2 = node.SelectSingleNode("assault2")
+        '    If n2 IsNot Nothing Then
+        '        node.RemoveChild(n2)
+        '    End If
+        'End If
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    Dim n2 = node.SelectSingleNode("domination")
+        '    If n2 IsNot Nothing Then
+        '        node.RemoveChild(n2)
+        '    End If
+        'End If
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    Dim n2 = node.SelectSingleNode("fallout")
+        '    If n2 IsNot Nothing Then
+        '        node.RemoveChild(n2)
+        '    End If
+        'End If
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    Dim n2 = node.SelectSingleNode("fallout2")
+        '    If n2 IsNot Nothing Then
+        '        node.RemoveChild(n2)
+        '    End If
+        'End If
+        'Id = xmlroot.Name + "/trees"
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    node.ParentNode.RemoveChild(node)
+        'End If
+        'Id = xmlroot.Name + "/fallingAtoms"
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    node.ParentNode.RemoveChild(node)
+        'End If
+        'Id = xmlroot.Name + "/turret0/armor"
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    node.ParentNode.RemoveChild(node)
+        'End If
 
-        If xDoc.InnerXml.Contains("customization") Then
-            Id = xmlroot.Name + "/inscriptions"
-            node = xDoc.SelectSingleNode(Id)
-remove_more:
-            If node IsNot Nothing Then
-                node.ParentNode.RemoveChild(node)
-            End If
-            node = xDoc.SelectSingleNode(Id)
-            If node IsNot Nothing Then
-                GoTo remove_more
-            End If
+        '        If xDoc.InnerXml.Contains("customization") Then
+        '            Id = xmlroot.Name + "/inscriptions"
+        '            node = xDoc.SelectSingleNode(Id)
+        'remove_more:
+        '            If node IsNot Nothing Then
+        '                node.ParentNode.RemoveChild(node)
+        '            End If
+        '            node = xDoc.SelectSingleNode(Id)
+        '            If node IsNot Nothing Then
+        '                GoTo remove_more
+        '            End If
 
-        End If
+        '        End If
         fileS.Position = 0
         xDoc.Save(fileS)
 
@@ -163,11 +163,11 @@ remove_more:
         TheXML_String = fbr.ReadChars(fileS.Length)
         TheXML_String = PrettyPrint(TheXML_String)
 
-        Id = xmlroot.Name + "/hull/armor"
-        node = xDoc.SelectSingleNode(Id)
-        If node IsNot Nothing Then
-            Return
-        End If
+        'Id = xmlroot.Name + "/hull/armor"
+        'node = xDoc.SelectSingleNode(Id)
+        'If node IsNot Nothing Then
+        '    Return
+        'End If
 
         fileS.Position = 0
         Try

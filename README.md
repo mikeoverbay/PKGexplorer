@@ -5,6 +5,10 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.10
+This fixes a bug in the XML viewer.
+Thanks Bluetinum for finding this bug!
+
 ## Version 1.0.09
 Fixed a bug with not extracting wild card searches.
 

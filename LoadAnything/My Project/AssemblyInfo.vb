@@ -12,7 +12,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("")> 
 <Assembly: AssemblyCompany("Microsoft")> 
 <Assembly: AssemblyProduct("PGK_Viewer")> 
-<Assembly: AssemblyCopyright("Mike Overbay 2018")> 
+<Assembly: AssemblyCopyright("Mike Overbay 2019")> 
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)>
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.9")> 
-<Assembly: AssemblyFileVersion("1.0.0.9")> 
+<Assembly: AssemblyVersion("1.0.0.10")> 
+<Assembly: AssemblyFileVersion("1.0.0.10")> 
