@@ -462,7 +462,7 @@ Public Class frmTreeList
         Dim iPath = My.Settings.game_path
         Dim f_info = Directory.GetFiles(iPath)
 
-        ReDim PKGS(150)
+        ReDim PKGS(200)
         ReDim p_files(1000000)
         ReDim folders(1500)
         cnt = 0
