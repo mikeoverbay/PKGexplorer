@@ -55,9 +55,12 @@ Public Class frmTreeList
         tv_contents.Dock = DockStyle.Fill
         Application.DoEvents()
         populate_tree()
-        If My.Settings.extract_location = "C:\" Then
-        Else
+        My.Settings.Reload()
+
+        If Not My.Settings.extract_location = "C:\" Then
             extract_location.Text = My.Settings.extract_location
+        Else
+            m_set_extract_path.PerformClick()
         End If
         MM_FB.Enabled = True
         tv_contents.Dock = DockStyle.Fill
@@ -144,7 +147,7 @@ Public Class frmTreeList
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
             My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
             My.Settings.Save()
-            extract_location.Text = FolderBrowserDialog1.SelectedPath
+            extract_location.Text = My.Settings.extract_location
         End If
 
     End Sub
