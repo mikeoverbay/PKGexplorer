@@ -487,8 +487,8 @@ Public Class frmTreeList
                 Dim in_f As Boolean = False
                 Using z As New Ionic.Zip.ZipFile(PKGS(i))
                     For Each item In z
-                        If Not item.IsDirectory Then 'dont want empty directories
-                            If Path.GetFileName(item.FileName).ToLower.Contains(s_str.ToLower) Then
+                        If True Then 'Not item.IsDirectory Then 'dont want empty directories
+                            If item.FileName.ToLower.Contains(s_str.ToLower) Then
                                 If Not in_f Then
                                     folders(f_cnt) = Path.GetFileName(z.Name)
                                     f_cnt += 1
@@ -514,7 +514,7 @@ Public Class frmTreeList
                                 If Not in_f Then
                                     folders(f_cnt) = Path.GetFileName(z.Name)
                                     f_cnt += 1
-                                    in_f = True
+                                    'in_f = True
                                 End If
                                 p_files(p_cnt) = item.FileName
                                 p_cnt += 1
