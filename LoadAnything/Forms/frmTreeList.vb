@@ -373,11 +373,12 @@ Public Class frmTreeList
 
     Private Sub extract_btn_find_extract(sender As Object, e As EventArgs) Handles extract_btn.Click
         RemoveHandler extract_btn.Click, AddressOf extract_btn_find_extract
+        Stop
         extract_btn.Enabled = False
         For i = 0 To cnt - 1
             Using z As New Ionic.Zip.ZipFile(PKGS(i))
                 For Each item In z
-                    If item.FileName.Contains(tv_contents.SelectedNode.Text) Then
+                    If item.FileName.ToLower.Contains(tv_contents.SelectedNode.Text.ToLower) Then
                         If Not item.IsDirectory Then 'dont want empty directories
                             item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
                             Label1.Text = "Extracted: " + item.FileName
@@ -401,7 +402,7 @@ Public Class frmTreeList
             For i = 0 To cnt - 1
                 Using z As New Ionic.Zip.ZipFile(PKGS(i))
                     For Each item In z
-                        If Path.GetFileName(item.FileName).ToLower.Contains(search_text.ToLower.Replace("*", "")) Then
+                        If item.FileName.ToLower.Contains(search_text.ToLower.Replace("*", "")) Then
                             If Not item.IsDirectory Then 'dont want empty directories
                                 item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
                                 Label1.Text = "Extracted: " + item.FileName
@@ -418,7 +419,7 @@ Public Class frmTreeList
             For i = 0 To cnt - 1
                 Using z As New Ionic.Zip.ZipFile(PKGS(i))
                     For Each item In z
-                        If Path.GetFileName(item.FileName).ToLower = search_text.ToLower Then
+                        If item.FileName.ToLower = search_text.ToLower Then
                             If Not item.IsDirectory Then 'dont want empty directories
                                 item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
                                 Label1.Text = "Extracted: " + item.FileName
