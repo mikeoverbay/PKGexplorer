@@ -58,6 +58,20 @@ Public Class frmMain
             set_game_path()
         End If
         game_path = My.Settings.game_path
+        If File.Exists(Temp_Storage + "\extract_path.txt") Then
+            My.Settings.extract_location = File.ReadAllText(Temp_Storage + "\extract_path.txt")
+            frmTreeList.extract_location.Text = My.Settings.extract_location
+            My.Settings.Save()
+        Else
+            FolderBrowserDialog1.Description = "Set path to extract location..."
+            FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
+            If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
+                IO.File.WriteAllText(Temp_Storage + "\extract_path.txt", FolderBrowserDialog1.SelectedPath)
+                frmTreeList.extract_location.Text = My.Settings.extract_location
+            End If
+
+
+        End If
         '=====================================================================
         'Start up OpenGL and Devil
         Il.ilInit()
@@ -139,6 +153,7 @@ Public Class frmMain
     End Sub
 
     Private Sub set_game_path()
+        FolderBrowserDialog1.Description = "Set path to res/packages"
         FolderBrowserDialog1.SelectedPath = My.Settings.game_path
 tryagain:
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then

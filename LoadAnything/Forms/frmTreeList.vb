@@ -142,11 +142,10 @@ Public Class frmTreeList
     Private Sub tv_contents_NodeMouseClick(sender As Object, e As TreeNodeMouseClickEventArgs) Handles tv_contents.NodeMouseClick
     End Sub
 
-    Private Sub m_set_extract_path_click(sender As Object, e As EventArgs) Handles m_set_extract_path.Click
+    Public Sub m_set_extract_path_click(sender As Object, e As EventArgs) Handles m_set_extract_path.Click
         FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
-            My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
-            My.Settings.Save()
+            IO.File.WriteAllText(Temp_Storage + "\extract_path.txt", FolderBrowserDialog1.SelectedPath)
             extract_location.Text = My.Settings.extract_location
         End If
 
