@@ -300,7 +300,7 @@ Public Class frmTreeList
         Dim iPath = My.Settings.game_path
         Dim f_info = Directory.GetFiles(iPath)
 
-        ReDim PKGS(150)
+        ReDim PKGS(250)
         ReDim p_files(1000000)
         ReDim folders(150000)
         cnt = 0
@@ -526,6 +526,55 @@ Public Class frmTreeList
                 End Using
             Next
         End If
+        ' Find text in space.bin in each file.
+
+
+#If False Then
+
+        Dim pkg_cnt = 0
+        For i = 0 To cnt - 1
+            'Dim in_f As Boolean = False
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If Not item.IsDirectory Then
+                        s_str = s_str.Replace("*", "") ' Remove * if it exist.
+
+                        If item.FileName.Contains("space.bin") Then
+                            Dim cBuffer() As Byte
+                            Dim blob As MemoryStream = Nothing
+                            Debug.WriteLine(Path.GetFileName(z.Name))
+                            pkg_cnt += 1
+                            Blob = New MemoryStream
+                            Blob.Position = 0
+
+                            item.Extract(Blob)
+
+                            'ReDim cBuffer(Blob.Length - 1)
+                            cBuffer = Blob.ToArray
+                            Dim sr = UTF8Encoding.UTF8.GetString(cBuffer)
+                            Dim cTag() As Byte = UTF8Encoding.UTF8.GetBytes(s_str)
+
+                            If sr.Contains(s_str) Then
+                                p_files(p_cnt) = Path.GetFileName(z.Name)
+                                p_cnt += 1
+
+                            End If
+
+                            ReDim cBuffer(1)
+                            Blob = Nothing
+                            sr = Nothing
+                            z.Dispose()
+                            GC.Collect()
+                            GC.WaitForFullGCComplete()
+                            Exit For
+
+                        End If
+
+                    End If
+                Next
+            End Using
+        Next
+#End If
         GC.Collect() 'clean up trash to free memory!
         files_tb.Text = ""
         Dim s As New StringBuilder
@@ -548,7 +597,20 @@ Public Class frmTreeList
         Application.DoEvents()
         close_btn.Focus()
     End Sub
+    Private Function Search(ByRef src As Byte(), ByRef pattern As Byte()) As Integer
+        Dim maxFirstCharSlot As Integer = src.Length - pattern.Length + 1
 
+        For i As Integer = 0 To maxFirstCharSlot - 1
+            If src(i) <> pattern(0) Then Continue For
+
+            For j As Integer = pattern.Length - 1 To 1
+                If src(i + j) <> pattern(j) Then Exit For
+                If j = 1 Then Return i
+            Next
+        Next
+
+        Return -1
+    End Function
     Private Sub m_search_text_Click(sender As Object, e As EventArgs) Handles m_search_text.Click
 
     End Sub

@@ -5,6 +5,9 @@
 
 #### This is an on going project by me.. Coffee_
 
+## Version 1.0.11
+Fixed a bug pointed out by Maxim Smirnov. The package count had grown to where I wasn't allocating enough space. This caused a exception to be thrown when clicking "Find All". Thanks Max :)
+
 ## Version 1.0.10
 This fixes a bug in the XML viewer.
 Thanks Bluetinum for finding this bug!
