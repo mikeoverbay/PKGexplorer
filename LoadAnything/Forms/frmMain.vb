@@ -164,6 +164,7 @@ tryagain:
             End If
             My.Settings.game_path = s
             File.WriteAllText(Temp_Storage + "\game_path.txt", s)
+            My.Settings.Save()
         Else
             MsgBox("You MUST set a path to the where the .PKG files are located!", MsgBoxStyle.Exclamation, "Hey!")
             End

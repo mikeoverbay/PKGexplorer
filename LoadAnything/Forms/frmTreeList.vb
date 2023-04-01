@@ -146,7 +146,9 @@ Public Class frmTreeList
         FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
             IO.File.WriteAllText(Temp_Storage + "\extract_path.txt", FolderBrowserDialog1.SelectedPath)
+            My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
             extract_location.Text = My.Settings.extract_location
+            My.Settings.Save()
         End If
 
     End Sub
