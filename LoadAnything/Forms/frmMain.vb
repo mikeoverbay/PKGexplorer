@@ -65,9 +65,11 @@ Public Class frmMain
         Else
             FolderBrowserDialog1.Description = "Set path to extract location..."
             FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
-            If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
+            If FolderBrowserDialog1.ShowDialog() = Forms.DialogResult.OK Then
+                My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
+                My.Settings.Save() ' Save the new path to settings
                 IO.File.WriteAllText(Temp_Storage + "\extract_path.txt", FolderBrowserDialog1.SelectedPath)
-                frmTreeList.extract_location.Text = My.Settings.extract_location
+                frmTreeList.extract_location.Text = FolderBrowserDialog1.SelectedPath
             End If
 
 

@@ -278,7 +278,7 @@ Public Class frmTreeList
     Private Sub MM_FB_MouseEnter(sender As Object, e As EventArgs) Handles MM_FB.MouseEnter
         Me.Focus()
     End Sub
-    Dim PKGS(150) As String
+    Dim PKGS(250) As String
     Dim p_files(1000000) As String
     Dim folders(150) As String
     Dim cnt As Integer = 0
@@ -467,7 +467,7 @@ Public Class frmTreeList
         Dim iPath = My.Settings.game_path
         Dim f_info = Directory.GetFiles(iPath)
 
-        ReDim PKGS(200)
+        ReDim PKGS(300)
         ReDim p_files(1000000)
         ReDim folders(1500)
         cnt = 0
