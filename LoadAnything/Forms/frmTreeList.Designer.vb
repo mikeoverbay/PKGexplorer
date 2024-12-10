@@ -156,7 +156,7 @@ Partial Class frmTreeList
         Me.MM_FB.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.m_set_extract_path, Me.extract_location, Me.m_view_item, Me.m_extract, Me.m_find_all, Me.m_show_location, Me.ToolStripTextBox1, Me.m_search_text})
         Me.MM_FB.Location = New System.Drawing.Point(0, 0)
         Me.MM_FB.Name = "MM_FB"
-        Me.MM_FB.Size = New System.Drawing.Size(811, 27)
+        Me.MM_FB.Size = New System.Drawing.Size(1032, 27)
         Me.MM_FB.TabIndex = 1
         Me.MM_FB.Text = "MenuStrip1"
         '
@@ -170,6 +170,7 @@ Partial Class frmTreeList
         '
         Me.extract_location.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.extract_location.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.extract_location.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.extract_location.ForeColor = System.Drawing.Color.White
         Me.extract_location.Name = "extract_location"
         Me.extract_location.Size = New System.Drawing.Size(100, 23)
@@ -196,7 +197,6 @@ Partial Class frmTreeList
         '
         'm_show_location
         '
-        Me.m_show_location.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
         Me.m_show_location.Name = "m_show_location"
         Me.m_show_location.Size = New System.Drawing.Size(135, 23)
         Me.m_show_location.Text = "Open Extract Location"
@@ -204,6 +204,7 @@ Partial Class frmTreeList
         'ToolStripTextBox1
         '
         Me.ToolStripTextBox1.AutoSize = False
+        Me.ToolStripTextBox1.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.ToolStripTextBox1.Margin = New System.Windows.Forms.Padding(1, 0, 0, 0)
         Me.ToolStripTextBox1.Name = "ToolStripTextBox1"
         Me.ToolStripTextBox1.ReadOnly = True
@@ -213,11 +214,13 @@ Partial Class frmTreeList
         'm_search_text
         '
         Me.m_search_text.AcceptsReturn = True
+        Me.m_search_text.AutoSize = False
         Me.m_search_text.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
+        Me.m_search_text.Font = New System.Drawing.Font("Segoe UI", 9.0!)
         Me.m_search_text.ForeColor = System.Drawing.Color.White
         Me.m_search_text.Margin = New System.Windows.Forms.Padding(0, 0, 1, 0)
         Me.m_search_text.Name = "m_search_text"
-        Me.m_search_text.Size = New System.Drawing.Size(150, 23)
+        Me.m_search_text.Size = New System.Drawing.Size(400, 23)
         Me.m_search_text.Text = "(type here..press enter)"
         '
         'frmTreeList
@@ -225,9 +228,9 @@ Partial Class frmTreeList
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(811, 455)
-        Me.Controls.Add(Me.MM_FB)
+        Me.ClientSize = New System.Drawing.Size(1032, 571)
         Me.Controls.Add(Me.SplitContainer1)
+        Me.Controls.Add(Me.MM_FB)
         Me.DoubleBuffered = True
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MainMenuStrip = Me.MM_FB

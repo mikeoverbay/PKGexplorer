@@ -143,7 +143,7 @@ Public Class frmTreeList
     End Sub
 
     Public Sub m_set_extract_path_click(sender As Object, e As EventArgs) Handles m_set_extract_path.Click
-        FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
+        FolderBrowserDialog1.SelectedPath = My.Settings.game_path
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
             IO.File.WriteAllText(Temp_Storage + "\extract_path.txt", FolderBrowserDialog1.SelectedPath)
             My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
@@ -613,6 +613,11 @@ Public Class frmTreeList
 
         Return -1
     End Function
+
+    Private Sub MM_FB_ItemClicked(sender As Object, e As ToolStripItemClickedEventArgs) Handles MM_FB.ItemClicked
+
+    End Sub
+
     Private Sub m_search_text_Click(sender As Object, e As EventArgs) Handles m_search_text.Click
 
     End Sub
