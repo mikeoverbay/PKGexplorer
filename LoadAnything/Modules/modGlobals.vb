@@ -39,7 +39,13 @@ Module modGlobals
         Public x, y, z, w As Single
     End Structure
     '=========================================================
-    Public current_package As New ZipFile
+    'Was "As New ZipFile".  That empty ZipFile was never used - every reader
+    'assigns ZipFile.Read(...) first - but constructing one at module-init time
+    'made modGlobals' type initializer reach into DotNetZip before anything had
+    'registered codepage 437, which .NET 8 does not carry by default.  The whole
+    'app died on startup with "The type initializer for modGlobals threw an
+    'exception".  Nothing here now; see register_zip_codepages().
+    Public current_package As ZipFile
 
     'Mouse view update screen variables
     Public mouse As New Point
@@ -60,4 +66,20 @@ Module modGlobals
     '=========================================================
     Public Temp_Storage As String = ""
     Public game_path As String = ""
+
+    ''' <summary>
+    ''' .NET Framework carried every legacy codepage; .NET 8 ships only the
+    ''' Unicode ones and leaves the rest to an opt-in provider.  DotNetZip uses
+    ''' IBM437 as its provisional encoding for entry names, so without this the
+    ''' first ZipFile.Read throws NotSupportedException on "No data is available
+    ''' for encoding 437".  Call it once, before any pkg is opened.
+    ''' </summary>
+    Public Sub register_zip_codepages()
+        Try
+            System.Text.Encoding.RegisterProvider( _
+                System.Text.CodePagesEncodingProvider.Instance)
+        Catch ex As Exception
+            'already registered, or a runtime that does not need it
+        End Try
+    End Sub
 End Module

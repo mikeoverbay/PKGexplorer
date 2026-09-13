@@ -198,18 +198,23 @@ Public Class frmTreeList
     Private Sub tv_contents_NodeMouseDoubleClick(sender As Object, e As TreeNodeMouseClickEventArgs) Handles tv_contents.NodeMouseDoubleClick
         process_selected_item()
     End Sub
-    Private Sub process_selected_item()
+    ''' <summary>
+    ''' Opens one entry out of one pkg and picks the viewer off the suffix.
+    ''' The treeview hands us the package it already has open; the search
+    ''' results hand us whichever package that hit came out of, which is very
+    ''' often NOT the one the tree is showing - that is why the zip comes in
+    ''' as an argument instead of being read off current_package.
+    ''' </summary>
+    Private Sub open_entry(ByVal zf As Ionic.Zip.ZipFile, ByVal entry_name As String)
         Try
-
-            If tv_contents.SelectedNode.Text = "dir" Then
-                Return
-            End If
-            Dim ext = Path.GetExtension(tv_contents.SelectedNode.Text)
+            If zf Is Nothing Or entry_name Is Nothing Then Return
+            Dim leaf = Path.GetFileName(entry_name)
+            Dim ext = Path.GetExtension(entry_name)
             Select Case ext
                 Case ".dds", ".png", ".jpg"
-                    cur_texture_name = Path.GetFileName(tv_contents.SelectedNode.Text)
+                    cur_texture_name = leaf
                     Dim ms As New MemoryStream
-                    Dim ent = current_package(tv_contents.SelectedNode.Tag)
+                    Dim ent = zf(entry_name)
                     If ent IsNot Nothing Then
                         ent.Extract(ms)
                     Else
@@ -228,14 +233,14 @@ Public Class frmTreeList
                     Exit Select
                 Case ".xml", ".model", ".visual", ".visual_processed", ".settings", ".def", ".texformat", ".mfm", ".font", ".ini"
                     Dim ms As New MemoryStream
-                    Dim ent = current_package(tv_contents.SelectedNode.Tag)
+                    Dim ent = zf(entry_name)
                     If ent IsNot Nothing Then
                         ent.Extract(ms)
                     Else
                         ms.Dispose()
                         Return
                     End If
-                    openXml_stream(ms, Path.GetFileName(tv_contents.SelectedNode.Text))
+                    openXml_stream(ms, leaf)
                     frmVisualViewer.Visible = True
                     frmVisualViewer.tb.Text = TheXML_String
                     frmVisualViewer.tb.SelectionLength = 0
@@ -243,16 +248,17 @@ Public Class frmTreeList
                     Exit Select
                 Case ".primitives", ".primitives_processed"
                     Dim ms As New MemoryStream
-                    Dim ent = current_package(tv_contents.SelectedNode.Tag)
+                    Dim ent = zf(entry_name)
                     If ent IsNot Nothing Then
                         ent.Extract(ms)
                     Else
                         ms.Dispose()
                         Return
                     End If
+                    file_name = leaf        'loadmodel names this file in its error box
                     Try
                         loadmodel(ms)
-                        model_name = Path.GetFileName(Path.GetFileName(tv_contents.SelectedNode.Text))
+                        model_name = leaf
                     Catch ex As Exception
                         MsgBox("Unable to load that model", MsgBoxStyle.Exclamation, "Dammit!")
                     End Try
@@ -260,7 +266,45 @@ Public Class frmTreeList
             End Select
         Catch ex As Exception
         End Try
+    End Sub
 
+    Private Sub process_selected_item()
+        Try
+            If tv_contents.SelectedNode Is Nothing Then Return
+            If tv_contents.SelectedNode.Name = "dir" Then Return
+            open_entry(current_package, tv_contents.SelectedNode.Tag)
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Double click a line in the search results and it opens, same as double
+    ''' clicking it in the treeview.  Only the hit lines are live - the
+    ''' separator and the pkg-name list underneath it are not, and the check
+    ''' that the clicked text really is p_files(line) is what tells them apart.
+    ''' </summary>
+    Private Sub files_tb_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles files_tb.MouseDoubleClick
+        Try
+            Dim ci = files_tb.GetCharIndexFromPosition(e.Location)
+            Dim ln = files_tb.GetLineFromCharIndex(ci)
+            If ln < 0 Or ln >= p_cnt Then Return
+            Dim txt = files_tb.Lines(ln).Trim
+            If txt = "" Then Return
+            'a hit line, or one of the pkg names listed below the separator?
+            If Not p_files(ln) = txt Then Return
+            Dim owner = p_owner(ln)
+            If owner Is Nothing OrElse owner = "" Then Return
+
+            Me.Cursor = Cursors.WaitCursor
+            Try
+                Using z As New Ionic.Zip.ZipFile(owner)
+                    open_entry(z, txt)
+                End Using
+            Finally
+                Me.Cursor = Cursors.Default
+            End Try
+        Catch ex As Exception
+        End Try
     End Sub
 
     Private Sub frmTreeList_MouseEnter(sender As Object, e As EventArgs) Handles Me.MouseEnter
@@ -280,6 +324,10 @@ Public Class frmTreeList
     End Sub
     Dim PKGS(250) As String
     Dim p_files(1000000) As String
+    'which pkg each hit in p_files came out of, same index.  The folders list
+    'below only records a pkg once, so it cannot answer "where is THIS hit" -
+    'and that is what a double click on a result line needs to know.
+    Dim p_owner(1000000) As String
     Dim folders(150) As String
     Dim cnt As Integer = 0
     Dim p_cnt As Integer = 0
@@ -304,6 +352,7 @@ Public Class frmTreeList
 
         ReDim PKGS(250)
         ReDim p_files(1000000)
+        ReDim p_owner(1000000)
         ReDim folders(150000)
         cnt = 0
         p_cnt = 0
@@ -331,6 +380,7 @@ Public Class frmTreeList
                                 in_f = True
                             End If
                             p_files(p_cnt) = item.FileName
+                            p_owner(p_cnt) = PKGS(i)
                             p_cnt += 1
                             files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
                         End If
@@ -343,6 +393,7 @@ Public Class frmTreeList
         files_tb.Text = ""
         Dim s As New StringBuilder
         ReDim Preserve p_files(p_cnt - 1)
+        ReDim Preserve p_owner(p_cnt - 1)
         For i = 0 To p_cnt - 1
             s.AppendLine(p_files(i))
         Next
@@ -396,43 +447,91 @@ Public Class frmTreeList
         extract_btn.Enabled = True
 
     End Sub
+    ''' <summary>
+    ''' Decides whether one pkg entry matches what was typed in the search box.
+    ''' A leading and/or trailing * says which end of the name is anchored:
+    '''
+    '''    Chassis.visual      no star  - the FILE NAME must match exactly
+    '''    Chassis*            trailing - the FILE NAME starts with it
+    '''    *.dds               leading  - the FILE NAME ends with it
+    '''    *german*            both     - anywhere in the WHOLE entry path
+    '''
+    ''' The double-star form is the wide one, and it keeps searching the whole
+    ''' path the way it always has, so *german* still finds a folder name.
+    ''' The single-star forms anchor against the file name instead, because a
+    ''' path always starts with vehicles/ or gui/ and anchoring those to the
+    ''' full path would match nothing.
+    ''' Stars in the MIDDLE are honoured too - the pieces must appear in order
+    ''' - so G78*Chassis does not silently come back empty.
+    '''
+    ''' Both the search and the extract go through here.  They used to carry
+    ''' two seperate copies of this test that did not agree: the search
+    ''' compared the file name and the extract compared the whole path, so an
+    ''' exact search found files and then extracted none of them.
+    ''' </summary>
+    Private Function name_matches(ByVal entry_name As String, ByVal pattern As String) As Boolean
+        If pattern Is Nothing Or entry_name Is Nothing Then Return False
+        Dim pat As String = pattern.ToLower.Trim
+        If pat = "" Then Return False
+
+        'no star at all - the file name has to be exactly what was typed
+        If Not pat.Contains("*") Then
+            Return Path.GetFileName(entry_name).ToLower = pat
+        End If
+
+        Dim lead As Boolean = pat.StartsWith("*")
+        Dim trail As Boolean = pat.EndsWith("*")
+        Dim core As String = pat.Trim("*"c)
+        If core = "" Then Return False      'the user typed nothing but stars
+
+        Dim parts() As String = core.Split("*"c)
+
+        'A pattern is WIDE when it is starred at both ends, or when it has a
+        'star in the middle - G78*Chassis* spans folder and file, so it can
+        'only ever match against the whole path.  Anything else is a single
+        'name anchored at one end, and that anchors to the FILE NAME: every
+        'path starts with vehicles/ or gui/, so anchoring Chassis* to the full
+        'path would match nothing at all.
+        If (lead And trail) Or parts.Length > 1 Then
+            Dim hay As String = entry_name.ToLower
+            Dim at As Integer = 0
+            For p = 0 To parts.Length - 1
+                If parts(p) = "" Then Continue For       'ignore ** runs
+                Dim found As Integer = hay.IndexOf(parts(p), at)
+                If found < 0 Then Return False
+                at = found + parts(p).Length
+            Next
+            Return True
+        End If
+
+        Dim leaf As String = Path.GetFileName(entry_name).ToLower
+        If lead Then Return leaf.EndsWith(core)     '*foo
+        Return leaf.StartsWith(core)                'foo*
+    End Function
+
     Private Sub extract_btn_text_extract(sender As Object, e As EventArgs) Handles extract_btn.Click
         RemoveHandler extract_btn.Click, AddressOf extract_btn_text_extract
         extract_btn.Enabled = False
-        If search_text.Contains("*") Then
-            For i = 0 To cnt - 1
-                Using z As New Ionic.Zip.ZipFile(PKGS(i))
-                    For Each item In z
-                        If item.FileName.ToLower.Contains(search_text.ToLower.Replace("*", "")) Then
-                            If Not item.IsDirectory Then 'dont want empty directories
-                                item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
-                                Label1.Text = "Extracted: " + item.FileName
-                                Application.DoEvents()
-                            End If
+        Dim done_cnt As Integer = 0
+        'one loop for every pattern shape - name_matches sorts out which is which,
+        'and it is the same test the search just used, so what was found is what
+        'gets extracted.
+        For i = 0 To cnt - 1
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If name_matches(item.FileName, search_text) Then
+                        If Not item.IsDirectory Then 'dont want empty directories
+                            item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
+                            done_cnt += 1
+                            Label1.Text = "Extracted: " + item.FileName
                             Application.DoEvents()
                         End If
-                    Next
-                End Using
-            Next
-
-        Else
-
-            For i = 0 To cnt - 1
-                Using z As New Ionic.Zip.ZipFile(PKGS(i))
-                    For Each item In z
-                        If item.FileName.ToLower = search_text.ToLower Then
-                            If Not item.IsDirectory Then 'dont want empty directories
-                                item.Extract(My.Settings.extract_location + "\", ExtractExistingFileAction.OverwriteSilently)
-                                Label1.Text = "Extracted: " + item.FileName
-                                Application.DoEvents()
-                            End If
-                            Application.DoEvents()
-                        End If
-                    Next
-                End Using
-            Next
-        End If
-        Label1.Text = "Extracted: " + p_cnt.ToString + " Files"
+                        Application.DoEvents()
+                    End If
+                Next
+            End Using
+        Next
+        Label1.Text = "Extracted: " + done_cnt.ToString + " Files"
         Application.DoEvents()
         close_btn.Focus()
         extract_btn.Enabled = True
@@ -469,6 +568,7 @@ Public Class frmTreeList
 
         ReDim PKGS(300)
         ReDim p_files(1000000)
+        ReDim p_owner(1000000)
         ReDim folders(1500)
         cnt = 0
         p_cnt = 0
@@ -483,51 +583,29 @@ Public Class frmTreeList
 
         Next
         ReDim Preserve PKGS(cnt - 1)
-        If s_str.Contains("*") Then
-            s_str = s_str.Replace("*", "")
-            For i = 0 To cnt - 1
-                Dim in_f As Boolean = False
-                Using z As New Ionic.Zip.ZipFile(PKGS(i))
-                    For Each item In z
-                        If True Then 'Not item.IsDirectory Then 'dont want empty directories
-                            If item.FileName.ToLower.Contains(s_str.ToLower) Then
-                                If Not in_f Then
-                                    folders(f_cnt) = Path.GetFileName(z.Name)
-                                    f_cnt += 1
-                                    in_f = True
-                                End If
-                                p_files(p_cnt) = item.FileName
-                                p_cnt += 1
-                                files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
-                                Application.DoEvents()
+        'one loop for every pattern shape.  search_text keeps the stars in it so
+        'the extract button can run the very same test on the very same string.
+        For i = 0 To cnt - 1
+            Dim in_f As Boolean = False
+            Using z As New Ionic.Zip.ZipFile(PKGS(i))
+                For Each item In z
+                    If Not item.IsDirectory Then 'dont want empty directories
+                        If name_matches(item.FileName, s_str) Then
+                            If Not in_f Then
+                                folders(f_cnt) = Path.GetFileName(z.Name)
+                                f_cnt += 1
+                                in_f = True
                             End If
+                            p_files(p_cnt) = item.FileName
+                            p_owner(p_cnt) = PKGS(i)
+                            p_cnt += 1
+                            files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
+                            Application.DoEvents()
                         End If
-                    Next
-                End Using
-            Next
-        Else
-
-            For i = 0 To cnt - 1
-                Dim in_f As Boolean = False
-                Using z As New Ionic.Zip.ZipFile(PKGS(i))
-                    For Each item In z
-                        If Not item.IsDirectory Then 'dont want empty directories
-                            If Path.GetFileName(item.FileName).ToLower = s_str.ToLower Then
-                                If Not in_f Then
-                                    folders(f_cnt) = Path.GetFileName(z.Name)
-                                    f_cnt += 1
-                                    'in_f = True
-                                End If
-                                p_files(p_cnt) = item.FileName
-                                p_cnt += 1
-                                files_tb.Text = "hit count: " + p_cnt.ToString + vbCrLf
-                                Application.DoEvents()
-                            End If
-                        End If
-                    Next
-                End Using
-            Next
-        End If
+                    End If
+                Next
+            End Using
+        Next
         ' Find text in space.bin in each file.
 
 
@@ -581,6 +659,7 @@ Public Class frmTreeList
         files_tb.Text = ""
         Dim s As New StringBuilder
         ReDim Preserve p_files(p_cnt - 1)
+        ReDim Preserve p_owner(p_cnt - 1)
         For i = 0 To p_cnt - 1
             s.AppendLine(p_files(i))
         Next

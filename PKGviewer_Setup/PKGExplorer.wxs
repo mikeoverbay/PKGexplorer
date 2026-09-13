@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PKG Explorer installer, WiX v7.
+
+  Replaces PKGviewer_Setup.vdproj, which cannot build this app any more:
+  a .vdproj needs the Visual Studio Installer Projects extension (not
+  installed here, and not buildable from the command line at all), its
+  payload came from a Framework-era "Built" project output group that does
+  not understand SDK-style projects, and its launch condition still demanded
+  .NET Framework 4.5 - which would cheerfully install an app that cannot
+  start, now that the app is .NET 8.
+
+  ProductName, Manufacturer and above all UpgradeCode are carried over from
+  the .vdproj verbatim.  The UpgradeCode is what makes this an UPGRADE of an
+  existing PKG Explorer rather than a second copy alongside it, so it must
+  never change.
+
+  Written 2026-09-13 by session "PKG Explorer codebase review".
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <?define ProductVersion = "1.0.14" ?>
+
+  <Package
+      Name="PKG Explorer"
+      Manufacturer="Coffee_"
+      Version="$(ProductVersion)"
+      UpgradeCode="29CFECFE-8161-47E3-BBF2-177B142682C9"
+      Scope="perMachine"
+      Compressed="yes"
+      InstallerVersion="500">
+
+    <!-- Replace any older PKG Explorer in place; refuse to go backwards. -->
+    <MajorUpgrade
+        AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of PKG Explorer is already installed. Remove it first if you really want this older one." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <!--
+      The app is 32-bit, because DevIL.dll / ILU.dll / ILUT.dll / freeglut.dll
+      beside it are native x86.  So it needs the x86 .NET Desktop Runtime, NOT
+      the x64 one - a machine with only the 64-bit runtime will not run it, and
+      that is a confusing failure worth catching here.
+
+      The runtime writes its newest host version to
+        HKLM\SOFTWARE\WOW6432Node\dotnet\Setup\InstalledVersions\x86\sharedhost
+      Bitness="always32" is what sends the search through WOW6432Node on 64-bit
+      Windows; without it the search looks in the 64-bit view and finds nothing
+      even on a machine that has the runtime.
+    -->
+    <Property Id="DOTNETHOSTX86">
+      <RegistrySearch
+          Id="SearchDotnetHostX86"
+          Root="HKLM"
+          Key="SOFTWARE\dotnet\Setup\InstalledVersions\x86\sharedhost"
+          Name="Version"
+          Type="raw"
+          Bitness="always32" />
+    </Property>
+
+    <Launch
+        Condition="Installed OR DOTNETHOSTX86"
+        Message="PKG Explorer needs the 32-bit (x86) .NET Desktop Runtime, version 8.0 or newer.&#13;&#10;&#13;&#10;Get it from https://dotnet.microsoft.com/download/dotnet/8.0 - pick &quot;Desktop Runtime&quot; and the x86 installer, not x64.&#13;&#10;&#13;&#10;Then run this installer again." />
+
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="INSTALLFOLDER" Name="PKG Explorer" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuFolder" Name="PKG Explorer" />
+    </StandardDirectory>
+
+    <!--
+      Everything published by "dotnet publish", harvested wholesale so the
+      payload cannot drift out of step with the build the way the .vdproj's
+      hand-listed file table did - it was still shipping SlimDX.dll and
+      FbxSDK.dll, neither of which exists any more, and knew nothing about
+      deps.json or runtimeconfig.json.  PublishDir is passed in by
+      build_installer.ps1.
+    -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PublishDir)\**" />
+    </ComponentGroup>
+
+    <ComponentGroup Id="AppShortcuts">
+      <Component Directory="AppMenuFolder" Guid="7B5F3C42-9E1D-4B8A-A6C7-2F0D5E814A93">
+        <Shortcut Id="StartMenuShortcut"
+                  Name="PKG Explorer"
+                  Description="Browse and view World of Tanks PKG files"
+                  Target="[INSTALLFOLDER]PKGviewer.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveAppMenuFolder" Directory="AppMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Coffee_\PKG Explorer"
+                       Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="PKG Explorer" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="AppShortcuts" />
+    </Feature>
+
+  </Package>
+</Wix>

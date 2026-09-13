@@ -94,10 +94,94 @@ Module modModelLoader
         Public Cnt As Integer
         Public d_list As Integer
         Public hiden As Boolean
+        '--- VBO-ready copy of the same geometry -------------------------
+        'pverts/idx are what the OpenTK renderer uploads; verts/norms/uvs
+        'above still feed the old display-list path so the viewer keeps
+        'working while the two renderers coexist.  Drop the old ones once
+        'make_list is gone.
+        Public pverts() As pbr_vertex
+        Public idx() As UInteger
+        Public skinned As Boolean       'iii/ww mesh - winding is opposite rigid
+        Public has_tangents As Boolean
+        Public vbo As Integer           'GL buffer names, 0 until uploaded
+        Public ibo As Integer
+        Public vao As Integer
     End Structure
     Public Structure uvs
         Public u, v As Single
     End Structure
+
+    ''' <summary>
+    ''' One vertex, laid out the way a VBO wants it - interleaved, all floats,
+    ''' no object references.  15 floats, 60 bytes.  tw carries the handedness
+    ''' of the bitangent so the shader can rebuild it with cross(N,T)*tw
+    ''' instead of us shipping a fourth vector.
+    ''' </summary>
+    Public Structure pbr_vertex
+        Public px, py, pz As Single         'position
+        Public nx, ny, nz As Single         'normal
+        Public tx, ty, tz, tw As Single     'tangent + bitangent sign
+        Public u, v As Single               'uv0
+        Public u2, v2 As Single             'uv1
+    End Structure
+
+    ''' <summary>
+    ''' What one vertex format contains and where each field sits inside a
+    ''' vertex.  Every stride and offset here was measured off the shipped
+    ''' files, not guessed: 120,975 vertices sections across the NA install,
+    ''' each format returning exactly one stride via (sectionSize-136)/count.
+    ''' The tangent offsets were confirmed separately by checking that the
+    ''' decoded tangent is perpendicular to the decoded normal - at stride 32
+    ''' BOTH +24 and +28 read perpendicular (they are tangent and binormal),
+    ''' at stride 36 only +28 does, because +24 there is a bone index.
+    '''
+    ''' The old code guessed stride with InStr() and silently left stride at 0
+    ''' for three formats that really ship - BPVTxyznuvitb (the havok collision
+    ''' proxies), BPVTxyz (audio occluders) and BPVTxyznuviiiww (bird flocks).
+    ''' Note the discriminator for SKINNED is iii, not i: BPVTxyznuvitb carries
+    ''' a single bone index and is rigid.
+    ''' </summary>
+    Public Structure vfmt_
+        Public known As Boolean
+        Public stride As Integer
+        Public bpvt As Boolean
+        Public realNormals As Boolean       'normal is 3 floats, not a packed uint
+        Public skinned As Boolean           'iii/ww present - decides triangle winding
+        Public n_off As Integer             '-1 when the format has no normal
+        Public uv_off As Integer
+        Public t_off As Integer             'packed tangent, -1 when absent
+        Public b_off As Integer             'packed binormal, -1 when absent
+    End Structure
+
+    Public Function describe_vertex_format(ByVal hdr As String) As vfmt_
+        Dim f As New vfmt_
+        f.known = True : f.bpvt = True
+        f.n_off = -1 : f.uv_off = -1 : f.t_off = -1 : f.b_off = -1
+        Select Case hdr
+            Case "BPVTxyz"                              'position only
+                f.stride = 12
+            Case "BPVTxyznuv"
+                f.stride = 24 : f.n_off = 12 : f.uv_off = 16
+            Case "BPVTxyznuvtb"
+                f.stride = 32 : f.n_off = 12 : f.uv_off = 16 : f.t_off = 24 : f.b_off = 28
+            Case "BPVTxyznuvitb"                        'one bone index at +24 - still rigid
+                f.stride = 36 : f.n_off = 12 : f.uv_off = 16 : f.t_off = 28 : f.b_off = 32
+            Case "BPVTxyznuviiiww"                      'iii+ww at +24,+28, no tangents
+                f.stride = 32 : f.n_off = 12 : f.uv_off = 16 : f.skinned = True
+            Case "BPVTxyznuviiiwwtb"
+                f.stride = 40 : f.n_off = 12 : f.uv_off = 16 : f.t_off = 32 : f.b_off = 36
+                f.skinned = True
+            Case "xyznuv"                               'legacy, non-BPVT: real float normals
+                f.stride = 32 : f.bpvt = False : f.realNormals = True
+                f.n_off = 12 : f.uv_off = 24
+            Case Else
+                'Nothing in the shipped game hits this - every one of the 120,975
+                'sections measured is one of the six BPVT forms above.  If WG adds
+                'a format we want to know, not silently render at stride 0.
+                f.known = False
+        End Select
+        Return f
+    End Function
     Public Structure indi
         Public p1, p2, p3 As Integer
     End Structure
@@ -307,32 +391,16 @@ Module modModelLoader
             Next
             vh.header_text = na
             na = ""
-            Dim BPVT_mode As Boolean = False
-            Dim realNormals As Boolean = False
-            Dim stride As Integer
-            If vh.header_text = "xyznuv" Then
-                stride = 32
-                realNormals = True
+            Dim vf = describe_vertex_format(vh.header_text)
+            If Not vf.known Then
+                MsgBox("Unknown vertex format """ + vh.header_text + """ in " + file_name + _
+                       "." + vbCrLf + "This model cannot be read.", _
+                       MsgBoxStyle.Exclamation, "New vertex format")
+                Return
             End If
-            If vh.header_text = "BPVTxyznuv" Then
-                BPVT_mode = True
-                stride = 24
-                realNormals = False
-            End If
-            If InStr(vh.header_text, "xyznuviiiwwtb") > 0 Then
-                stride = 37
-            End If
-            If InStr(vh.header_text, "BPVTxyznuviiiwwtb") > 0 Then
-                BPVT_mode = True
-                stride = 40
-            End If
-            If InStr(vh.header_text, "xyznuvtb") > 0 Then
-                stride = 32
-            End If
-            If InStr(vh.header_text, "BPVTxyznuvtb") > 0 Then
-                BPVT_mode = True
-                stride = 32
-            End If
+            Dim BPVT_mode As Boolean = vf.bpvt
+            Dim realNormals As Boolean = vf.realNormals
+            Dim stride As Integer = vf.stride
             If BPVT_mode Then
                 Vrd.BaseStream.Position = 132
             End If
@@ -381,62 +449,83 @@ Module modModelLoader
                 End If
                 Dim indi_offset As UInteger = 0
                 indi_offset = pGroups(k - object_start).startVertex_
+                'Every field is read at its OWN offset inside the vertex now,
+                'instead of reading forward and guessing how many bytes to skip
+                'afterwards.  The old way could not survive a format it did not
+                'recognise: on BPVTxyz, which is position only, it read 24 bytes
+                'per 12 byte vertex and walked off the end of the buffer taking
+                'the next vertex's position for this one's normal.
+                _object(k).skinned = vf.skinned
+                _object(k).has_tangents = (vf.t_off >= 0)
+                ReDim _object(k).pverts(pos)
+                Dim v_base As Long = pGroups(k - object_start).startVertex_ * stride + 136
                 For cnt = 0 To pos - 1
                     With _object(k)
+                        Dim at As Long = v_base + cnt * stride
 
                         .verts(cnt) = New vect3
                         .norms(cnt) = New vect3
                         .uvs(cnt) = New uvs
-                        If has_uv2 Then
-                            .uv2s(cnt) = New uvs
-                        End If
+                        If has_uv2 Then .uv2s(cnt) = New uvs
 
+                        Vrd.BaseStream.Position = at
                         .verts(cnt).x = Vrd.ReadSingle
                         .verts(cnt).y = Vrd.ReadSingle
                         .verts(cnt).z = Vrd.ReadSingle
                         check_Bounds(.verts(cnt))
-                        If realNormals Then
-                            .norms(cnt).x = Vrd.ReadSingle
-                            .norms(cnt).y = Vrd.ReadSingle
-                            .norms(cnt).z = Vrd.ReadSingle
-                        Else
-                            Dim n = Vrd.ReadUInt32
-                            Dim v As vect3
-                            If BPVT_mode Then
-                                v = unpackNormal_8_8_8(n)   ' unpack normals
-                            Else
-                                v = unpackNormal(n)   ' unpack normals
-                            End If
-                            .norms(cnt).x = v.x
-                            .norms(cnt).y = v.y
-                            .norms(cnt).z = v.z
 
+                        If vf.n_off >= 0 Then
+                            Vrd.BaseStream.Position = at + vf.n_off
+                            Dim v As vect3
+                            If realNormals Then
+                                v.x = Vrd.ReadSingle : v.y = Vrd.ReadSingle : v.z = Vrd.ReadSingle
+                            ElseIf BPVT_mode Then
+                                v = unpackNormal_8_8_8(Vrd.ReadUInt32)
+                            Else
+                                v = unpackNormal(Vrd.ReadUInt32)
+                            End If
+                            .norms(cnt) = v
                         End If
-                        .uvs(cnt).u = Vrd.ReadSingle
-                        .uvs(cnt).v = Vrd.ReadSingle
+
+                        If vf.uv_off >= 0 Then
+                            Vrd.BaseStream.Position = at + vf.uv_off
+                            .uvs(cnt).u = Vrd.ReadSingle
+                            .uvs(cnt).v = Vrd.ReadSingle
+                        End If
                         If has_uv2 Then
                             .uv2s(cnt).u = uv2_data_reader.ReadSingle
                             .uv2s(cnt).v = uv2_data_reader.ReadSingle
                         End If
-                        If stride = 37 Or stride = 40 Then
-                            Vrd.ReadByte() 'indexes
-                            Vrd.ReadByte()
-                            Vrd.ReadByte()
-                            Vrd.ReadByte()
-                            Vrd.ReadByte()
-                            Vrd.ReadByte()
-                            Vrd.ReadByte()
-                            Vrd.ReadByte()
-                            Vrd.ReadUInt32() 't
-                            Vrd.ReadUInt32() 'tbn
-                        Else
-                            If Not realNormals And Not stride = 24 Then
-                                'these dont exist in XYZNUV format vertex
-                                Vrd.ReadUInt32() 't
-                                Vrd.ReadUInt32() 'tbn
-                            End If
+
+                        'Tangent and binormal used to be read and thrown away.
+                        'PBR normal mapping needs them, so keep the tangent and
+                        'reduce the binormal to the one bit the shader actually
+                        'wants - which side the bitangent points, so it can do
+                        'cross(N,T) * tw.
+                        Dim tan As vect3, bin As vect3
+                        If vf.t_off >= 0 Then
+                            Vrd.BaseStream.Position = at + vf.t_off
+                            tan = unpackNormal_8_8_8(Vrd.ReadUInt32)
+                            Vrd.BaseStream.Position = at + vf.b_off
+                            bin = unpackNormal_8_8_8(Vrd.ReadUInt32)
                         End If
 
+                        With .pverts(cnt)
+                            .px = _object(k).verts(cnt).x
+                            .py = _object(k).verts(cnt).y
+                            .pz = _object(k).verts(cnt).z
+                            .nx = _object(k).norms(cnt).x
+                            .ny = _object(k).norms(cnt).y
+                            .nz = _object(k).norms(cnt).z
+                            .tx = tan.x : .ty = tan.y : .tz = tan.z
+                            .tw = bitangent_sign(_object(k).norms(cnt), tan, bin)
+                            .u = _object(k).uvs(cnt).u
+                            .v = _object(k).uvs(cnt).v
+                            If has_uv2 Then
+                                .u2 = _object(k).uv2s(cnt).u
+                                .v2 = _object(k).uv2s(cnt).v
+                            End If
+                        End With
                     End With
                 Next
                 pos = pGroups(k - object_start).nPrimitives_ - 1
@@ -459,6 +548,30 @@ Module modModelLoader
                             .indis(cnt).p1 -= indi_offset
                             .indis(cnt).p2 -= indi_offset
                             .indis(cnt).p3 -= indi_offset
+                        End If
+                    End With
+                Next
+                'Flat index buffer for glDrawElements.  Rigid meshes get their
+                'two corners swapped here and skinned ones do not: the two carry
+                'OPPOSITE winding in the file (measured - signed normal against
+                'the winding-derived face normal is +0.92 for rigid meshes and
+                '-0.937 for iii/ww ones), and negating X to reach a right handed
+                'view flips the effective winding again.  Get this wrong and
+                'every hull renders inside out the moment culling is enabled.
+                'The display-list path below never noticed because it draws with
+                'GL_CULL_FACE off and hands the normal over explicitly.
+                ReDim _object(k).idx((pos + 1) * 3 - 1)
+                For cnt = 0 To pos
+                    With _object(k)
+                        Dim o = cnt * 3
+                        If .skinned Then
+                            .idx(o) = CUInt(.indis(cnt).p1)
+                            .idx(o + 1) = CUInt(.indis(cnt).p2)
+                            .idx(o + 2) = CUInt(.indis(cnt).p3)
+                        Else
+                            .idx(o) = CUInt(.indis(cnt).p1)
+                            .idx(o + 1) = CUInt(.indis(cnt).p3)
+                            .idx(o + 2) = CUInt(.indis(cnt).p2)
                         End If
                     End With
                 Next
@@ -504,6 +617,20 @@ Module modModelLoader
         End With
 
     End Sub
+    ''' <summary>
+    ''' Which way the bitangent runs, as +1 or -1, so the shader can rebuild it
+    ''' with cross(N,T)*tw and we ship three floats instead of six.  Compares
+    ''' the stored binormal against the one implied by N and T.
+    ''' </summary>
+    Private Function bitangent_sign(ByVal n As vect3, ByVal t As vect3, ByVal b As vect3) As Single
+        'cross(n, t)
+        Dim cx = n.y * t.z - n.z * t.y
+        Dim cy = n.z * t.x - n.x * t.z
+        Dim cz = n.x * t.y - n.y * t.x
+        If (cx * b.x + cy * b.y + cz * b.z) < 0.0! Then Return -1.0!
+        Return 1.0!
+    End Function
+
     Private Sub check_Bounds(ByVal v As vect3)
         If v.x > x_max Then x_max = v.x
         If v.y > y_max Then y_max = v.y

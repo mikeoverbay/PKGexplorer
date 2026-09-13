@@ -27,5 +27,79 @@ PKGviewer
   Looks up a localized resource of type System.Drawing.Bitmap.
 </summary>
 </member>
+<member name="M:pkg_viewer.frmTreeList.open_entry(Ionic.Zip.ZipFile,System.String)">
+ <summary>
+ Opens one entry out of one pkg and picks the viewer off the suffix.
+ The treeview hands us the package it already has open; the search
+ results hand us whichever package that hit came out of, which is very
+ often NOT the one the tree is showing - that is why the zip comes in
+ as an argument instead of being read off current_package.
+ </summary>
+</member>
+<member name="M:pkg_viewer.frmTreeList.files_tb_MouseDoubleClick(System.Object,System.Windows.Forms.MouseEventArgs)">
+ <summary>
+ Double click a line in the search results and it opens, same as double
+ clicking it in the treeview.  Only the hit lines are live - the
+ separator and the pkg-name list underneath it are not, and the check
+ that the clicked text really is p_files(line) is what tells them apart.
+ </summary>
+</member>
+<member name="M:pkg_viewer.frmTreeList.name_matches(System.String,System.String)">
+ <summary>
+ Decides whether one pkg entry matches what was typed in the search box.
+ A leading and/or trailing * says which end of the name is anchored:
+
+    Chassis.visual      no star  - the FILE NAME must match exactly
+    Chassis*            trailing - the FILE NAME starts with it
+    *.dds               leading  - the FILE NAME ends with it
+    *german*            both     - anywhere in the WHOLE entry path
+
+ The double-star form is the wide one, and it keeps searching the whole
+ path the way it always has, so *german* still finds a folder name.
+ The single-star forms anchor against the file name instead, because a
+ path always starts with vehicles/ or gui/ and anchoring those to the
+ full path would match nothing.
+ Stars in the MIDDLE are honoured too - the pieces must appear in order
+ - so G78*Chassis does not silently come back empty.
+
+ Both the search and the extract go through here.  They used to carry
+ two seperate copies of this test that did not agree: the search
+ compared the file name and the extract compared the whole path, so an
+ exact search found files and then extracted none of them.
+ </summary>
+</member>
+<member name="T:pkg_viewer.modModelLoader.pbr_vertex">
+ <summary>
+ One vertex, laid out the way a VBO wants it - interleaved, all floats,
+ no object references.  15 floats, 60 bytes.  tw carries the handedness
+ of the bitangent so the shader can rebuild it with cross(N,T)*tw
+ instead of us shipping a fourth vector.
+ </summary>
+</member>
+<member name="T:pkg_viewer.modModelLoader.vfmt_">
+ <summary>
+ What one vertex format contains and where each field sits inside a
+ vertex.  Every stride and offset here was measured off the shipped
+ files, not guessed: 120,975 vertices sections across the NA install,
+ each format returning exactly one stride via (sectionSize-136)/count.
+ The tangent offsets were confirmed separately by checking that the
+ decoded tangent is perpendicular to the decoded normal - at stride 32
+ BOTH +24 and +28 read perpendicular (they are tangent and binormal),
+ at stride 36 only +28 does, because +24 there is a bone index.
+
+ The old code guessed stride with InStr() and silently left stride at 0
+ for three formats that really ship - BPVTxyznuvitb (the havok collision
+ proxies), BPVTxyz (audio occluders) and BPVTxyznuviiiww (bird flocks).
+ Note the discriminator for SKINNED is iii, not i: BPVTxyznuvitb carries
+ a single bone index and is rigid.
+ </summary>
+</member>
+<member name="M:pkg_viewer.modModelLoader.bitangent_sign(pkg_viewer.modGlobals.vect3,pkg_viewer.modGlobals.vect3,pkg_viewer.modGlobals.vect3)">
+ <summary>
+ Which way the bitangent runs, as +1 or -1, so the shader can rebuild it
+ with cross(N,T)*tw and we ship three floats instead of six.  Compares
+ the stored binormal against the one implied by N and T.
+ </summary>
+</member>
 </members>
 </doc>

@@ -33,6 +33,8 @@ Public Class frmMain
 #Region "frmMain events"
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles Me.Load
+        'must happen before the first pkg is opened - see modGlobals
+        register_zip_codepages()
         My.Settings.Upgrade() ' upgrades to keep old settings
 
 
@@ -715,6 +717,13 @@ tryagain:
 
     Private Sub m_export_fbx_Click(sender As Object, e As EventArgs) Handles m_export_fbx.Click
         If Not Model_Loaded Then Return
-        frmFBX.ShowDialog()
+        'FBX export is off while the app moves to .NET 8.  The old exporter was
+        'built on FbxSDK.dll, which is mixed-mode C++/CLI and cannot load on
+        'anything past .NET Framework.  Forms\frmFBX.vb is still in the tree as
+        'the reference for what the AssimpNet replacement has to emit.
+        MsgBox("FBX export is temporarily disabled." + vbCrLf + vbCrLf + _
+               "The old exporter used FbxSDK.dll, which cannot run on .NET 8." + vbCrLf + _
+               "It is being rebuilt on AssimpNet.", _
+               MsgBoxStyle.Information, "Coming back shortly")
     End Sub
 End Class
