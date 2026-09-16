@@ -1,4 +1,4 @@
-Thumbs.db
+﻿Thumbs.db
 *.obj
 *.exe
 *.pdb
@@ -32,3 +32,5 @@ $tf*/
 .vs/
 
 *.msi
+# WiX build artifact, produced beside the MSI on every installer build
+*.wixpdb
