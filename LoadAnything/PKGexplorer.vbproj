@@ -46,6 +46,14 @@
       app wrapping native DevIL and OpenGL; it emitted 401 of these and buried
       the warnings that matter.
     -->
+    <!--
+      Stop MSBuild copying each reference's SIBLING files - the .xml
+      IntelliSense docs and the .pdb - into the output.  They are developer
+      metadata and nothing loads them at runtime, but they were being packaged
+      and shipped: Tao.OpenGl.xml alone is 3.4 MB, and with the other three
+      plus Ionic.Zip.pdb that was 4.8 MB of an 18.8 MB installer payload.
+    -->
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
     <NoWarn>CA1416</NoWarn>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
   </PropertyGroup>
@@ -123,7 +131,8 @@
     <None Include="freeglut.dll" CopyToOutputDirectory="PreserveNewest" />
     <None Include="App.config" />
     <None Include="Images\**" CopyToOutputDirectory="PreserveNewest" LinkBase="images" />
-    <None Include="models\**" CopyToOutputDirectory="PreserveNewest" LinkBase="models" />
+    <!-- coffee.x only.  models\CupOBJ is sample data nothing loads - 1.7 MB of it. -->
+    <None Include="models\coffee.x" CopyToOutputDirectory="PreserveNewest" LinkBase="models" />
     <None Include="html\**" CopyToOutputDirectory="PreserveNewest" LinkBase="html" />
   </ItemGroup>
 
