@@ -110,8 +110,29 @@ Public Class GlModelView
         assets = If(bl Is Nothing, New List(Of BuildingAsset), bl.Assets.Values.ToList())
         If Not glReady Then EnsureGL()
         browser = New ModelBrowser(assets)
-        browser.Apply()
+        'Deliberately NOT browser.Apply() here.  Apply is the search, and with
+        'an empty query it lists the whole library - so opening a model used to
+        'run a full default search nobody asked for, on top of the library scan
+        'that filled it.  The list stays empty and the panel stays closed until
+        '/ or Tab asks for it.
+        browser.Visible = False
         Invalidate()
+    End Sub
+
+    ''' <summary>
+    ''' Build the browser the first time it is actually wanted.  Scanning the
+    ''' library is the expensive half - about 325 assets out of half a million
+    ''' indexed entries - and paying for it when a model opens meant every
+    ''' double click in the tree waited on a panel that might never be looked at.
+    ''' </summary>
+    Private Sub EnsureBrowser()
+        If browser IsNot Nothing Then Return
+        Dim ix = ModelIndex.Get_Index()
+        If ix Is Nothing Then Return
+        pkg = ix
+        assets = ModelIndex.Get_Library().Assets.Values.ToList()
+        browser = New ModelBrowser(assets)
+        browser.Visible = False
     End Sub
 
     Private Sub EnsureGL()
@@ -424,12 +445,18 @@ Public Class GlModelView
 
         Select Case e.KeyCode
             Case Keys.Oem2                 '/ focuses the search box
+                EnsureBrowser()
                 If browser IsNot Nothing Then
                     browser.Visible = True
                     browser.Focused = True
+                    browser.Apply()        'first query runs on demand, not on open
                 End If
             Case Keys.Tab
-                If browser IsNot Nothing Then browser.Visible = Not browser.Visible
+                EnsureBrowser()
+                If browser IsNot Nothing Then
+                    browser.Visible = Not browser.Visible
+                    If browser.Visible Then browser.Apply()
+                End If
             Case Keys.W
                 renderer.Wireframe = Not renderer.Wireframe
             Case Keys.F

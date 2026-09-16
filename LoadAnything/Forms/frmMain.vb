@@ -34,7 +34,6 @@ Public Class frmMain
     'Set by the Explorer when it is really closing, so the viewer's FormClosing
     'lets go instead of hiding.
     Public shutting_down As Boolean = False
-    Private viewer_attached As Boolean = False
 
     ''' <summary>Loads one package entry into the model window.  Called by the
     ''' tree when a .primitives_processed is double clicked.</summary>
@@ -42,11 +41,6 @@ Public Class frmMain
         If model_view Is Nothing Then Return
         Dim ix = ModelIndex.Get_Index()
         If ix Is Nothing Then Return
-        If Not viewer_attached Then
-            'Fills Exporter Studio's browser panel on the left.
-            model_view.Attach(ix, ModelIndex.Get_Library())
-            viewer_attached = True
-        End If
         If Not model_view.LoadEntry(ix, entry) Then
             MsgBox("No readable geometry in:" + vbCrLf + entry,
                    MsgBoxStyle.Exclamation, "Nothing to draw")
