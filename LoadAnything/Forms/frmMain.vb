@@ -31,6 +31,9 @@ Public Class frmMain
     ''' <summary>The core-profile model surface that replaced PB1's fixed
     ''' function drawing.  See Viewer\GlModelView.vb.</summary>
     Public model_view As GlModelView
+    'Set by the Explorer when it is really closing, so the viewer's FormClosing
+    'lets go instead of hiding.
+    Public shutting_down As Boolean = False
     Private viewer_attached As Boolean = False
 
     ''' <summary>Loads one package entry into the model window.  Called by the
@@ -54,6 +57,8 @@ Public Class frmMain
                   "   (" + model_view.Renderer3D.PartCount.ToString + " parts, " +
                   model_view.Renderer3D.TriangleCount.ToString("N0") + " tris)"
         Model_Loaded = True
+        If Not Me.Visible Then Me.Show()
+        Me.BringToFront()
     End Sub
 
 
@@ -148,17 +153,41 @@ Public Class frmMain
         _STARTED = True
         '=====================================================================
         Me.Text += " Version: " + Application.ProductVersion
+
+        'The Explorer is the opening page, not the model viewer.  frmMain stays
+        'the MainForm - the application framework ties process lifetime to it,
+        'and it owns the GL setup - it is simply not shown until a model is
+        'opened.  Its Set Paths menu has moved to the Explorer.
+        MM.Items.Remove(m_file)
+    End Sub
+
+    'Hiding in Load does not stick: the application framework shows the MainForm
+    'AFTER Load returns, so the Hide is simply undone.  Shown is the first point
+    'the framework is finished with it.
+    Private first_show As Boolean = True
+    Private Sub frmMain_Shown(sender As Object, e As EventArgs) Handles Me.Shown
+        If Not first_show Then Return
+        first_show = False
+        Me.Hide()
+        frmTreeList.Show()
+        frmTreeList.BringToFront()
+        frmTreeList.Focus()
     End Sub
 
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        _STARTED = False
-        Thread.Sleep(100)
-        DisableOpenGL()
-        If current_package IsNot Nothing Then
-            current_package.Dispose()
-            GC.Collect()
+        'Closing the viewer hides it and returns to the Explorer; the Explorer
+        'is what quits the application now.  shutting_down is set there, so this
+        'does not swallow the real exit.
+        If Not shutting_down Then
+            e.Cancel = True
+            Me.Hide()
+            frmTreeList.Show()
+            frmTreeList.Focus()
+            Return
         End If
-        End
+        _STARTED = False
+        DisableOpenGL()
+        If current_package IsNot Nothing Then current_package.Dispose()
     End Sub
 
     Private Sub frmMain_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -197,7 +226,11 @@ Public Class frmMain
         frmTreeList.tv_contents.SelectedImageIndex = 1
     End Sub
 
-    Private Sub set_game_path()
+    'Public because the Set Paths menu lives on the Explorer window now.  Kept
+    'here rather than moved: frmMain_Load calls it on first run, before
+    'frmTreeList exists, and touching the default instance from there would
+    'build the tree before there was a path to build it from.
+    Public Sub set_game_path()
         FolderBrowserDialog1.Description = "Set path to res/packages"
         FolderBrowserDialog1.SelectedPath = My.Settings.game_path
 tryagain:

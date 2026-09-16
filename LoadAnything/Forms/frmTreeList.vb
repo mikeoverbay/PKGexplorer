@@ -32,10 +32,14 @@ Public Class frmTreeList
     Dim ignorelist() = {".pyc", "def", ".xml"}
     Dim search_text As String
 
+    'The Explorer is the opening page now, so closing it closes the
+    'application.  It used to cancel and hide, on the assumption the model
+    'viewer was still up behind it - which is no longer true, and would have
+    'left the process running with nothing on screen.
     Private Sub frmTreeList_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        e.Cancel = True
-        Me.Hide()
-        frmMain.Focus()
+        frmMain.shutting_down = True
+        frmMain.Close()
+        Application.Exit()
     End Sub
 
 
@@ -60,8 +64,12 @@ Public Class frmTreeList
         If Not My.Settings.extract_location = "C:\" Then
             extract_location.Text = My.Settings.extract_location
         Else
-            m_set_extract_path.PerformClick()
+            'Direct call: m_set_extract_path lost its Handles clause when the
+            'chooser moved into the Set Paths menu, so PerformClick would fire
+            'nothing at all on a first run.
+            SetExtractPath()
         End If
+        build_paths_menu()
         MM_FB.Enabled = True
         tv_contents.Dock = DockStyle.Fill
         Panel1.Dock = DockStyle.Fill
@@ -69,6 +77,38 @@ Public Class frmTreeList
         tv_contents.Visible = True
 
     End Sub
+    'Set Paths moved here from the model viewer, which is no longer the window
+    'you land on.  "Set Extract to location" was a separate top-level item; it
+    'is a path, so it belongs in the same menu as the other one rather than
+    'sitting beside View Item and Extract.  Built in code - a ToolStripMenuItem
+    'and two children is less trouble than the designer for this.
+    Private Sub build_paths_menu()
+        Dim root As New ToolStripMenuItem("Set Paths")
+
+        Dim pkgs As New ToolStripMenuItem("Path to PKG files...")
+        AddHandler pkgs.Click,
+            Sub()
+                frmMain.set_game_path()
+                game_path = My.Settings.game_path
+                tv_filenames.Nodes.Clear()
+                tv_contents.Nodes.Clear()
+                populate_tree()
+            End Sub
+
+        Dim extract As New ToolStripMenuItem("Extract to location...")
+        AddHandler extract.Click, Sub() SetExtractPath()
+
+        Dim temp As New ToolStripMenuItem("Show Temp Folder")
+        AddHandler temp.Click,
+            Sub()
+                If Directory.Exists(Temp_Storage) Then Process.Start("explorer.exe", Temp_Storage)
+            End Sub
+
+        root.DropDownItems.AddRange(New ToolStripItem() {pkgs, extract, temp})
+        MM_FB.Items.Insert(0, root)
+        MM_FB.Items.Remove(m_set_extract_path)
+    End Sub
+
     Public Sub populate_tree()
         tv_loading_1 = True
         tv_loading_2 = True
@@ -142,8 +182,8 @@ Public Class frmTreeList
     Private Sub tv_contents_NodeMouseClick(sender As Object, e As TreeNodeMouseClickEventArgs) Handles tv_contents.NodeMouseClick
     End Sub
 
-    Public Sub m_set_extract_path_click(sender As Object, e As EventArgs) Handles m_set_extract_path.Click
-        FolderBrowserDialog1.SelectedPath = My.Settings.game_path
+    Public Sub SetExtractPath()
+        FolderBrowserDialog1.SelectedPath = My.Settings.extract_location
         If FolderBrowserDialog1.ShowDialog = Forms.DialogResult.OK Then
             IO.File.WriteAllText(Temp_Storage + "\extract_path.txt", FolderBrowserDialog1.SelectedPath)
             My.Settings.extract_location = FolderBrowserDialog1.SelectedPath
