@@ -27,11 +27,11 @@ Imports System.Globalization
 #End Region
 
 Public Class frmMain
-    Public update_thread As New Thread(AddressOf update_mouse)
 
     ''' <summary>The core-profile model surface that replaced PB1's fixed
     ''' function drawing.  See Viewer\GlModelView.vb.</summary>
     Public model_view As GlModelView
+    Private viewer_attached As Boolean = False
 
     ''' <summary>Loads one package entry into the model window.  Called by the
     ''' tree when a .primitives_processed is double clicked.</summary>
@@ -39,6 +39,11 @@ Public Class frmMain
         If model_view Is Nothing Then Return
         Dim ix = ModelIndex.Get_Index()
         If ix Is Nothing Then Return
+        If Not viewer_attached Then
+            'Fills Exporter Studio's browser panel on the left.
+            model_view.Attach(ix, ModelIndex.Get_Library())
+            viewer_attached = True
+        End If
         If Not model_view.LoadEntry(ix, entry) Then
             MsgBox("No readable geometry in:" + vbCrLf + entry,
                    MsgBoxStyle.Exclamation, "Nothing to draw")
@@ -49,40 +54,9 @@ Public Class frmMain
                   "   (" + model_view.Renderer3D.PartCount.ToString + " parts, " +
                   model_view.Renderer3D.TriangleCount.ToString("N0") + " tris)"
         Model_Loaded = True
-        rebuild_parts_panel()
     End Sub
 
-    ''' <summary>
-    ''' One checkbox per draw group, in the left pane PKG Explorer already had
-    ''' for this.  The old loader built these from its own _object array; the
-    ''' parts now come from the renderer, and unticking one hides it in the view
-    ''' and drops it from a "visible only" export.
-    ''' </summary>
-    Private Sub rebuild_parts_panel()
-        Dim host = SplitContainer1.Panel1
-        host.Controls.Clear()
-        If model_view Is Nothing OrElse Not model_view.Renderer3D.HasGeometry Then Return
-        Dim r = model_view.Renderer3D
-        Dim y = 5
-        For i = 0 To r.PartCount - 1
-            Dim cb As New CheckBox With {
-                .AutoSize = True, .Checked = True, .Tag = i,
-                .ForeColor = Color.Wheat, .BackColor = Color.Transparent,
-                .Text = i.ToString("00") + "  " + r.PartLabel(i)}
-            AddHandler cb.CheckedChanged, AddressOf part_toggled
-            host.Controls.Add(cb)
-            cb.Location = New Point(3, y)
-            y += cb.Height - 2
-        Next
-        host.AutoScroll = True          'a tank chassis runs to dozens of groups
-    End Sub
 
-    Private Sub part_toggled(sender As Object, e As EventArgs)
-        Dim cb = TryCast(sender, CheckBox)
-        If cb Is Nothing OrElse model_view Is Nothing Then Return
-        model_view.Renderer3D.SetPartHidden(CInt(cb.Tag), Not cb.Checked)
-        model_view.Invalidate()
-    End Sub
 
     ''' <summary>
     ''' Export the loaded model.  All three writers are Exporter Studio's:
@@ -207,14 +181,9 @@ Public Class frmMain
         PB2.Parent = frmTextureViewer
         PB2.Dock = DockStyle.Fill
         '=====================================================================
-        'make grid
-        make_xy_grid()
         '=====================================================================
         'setup image lists
         setup_image_lists()
-        '=====================================================================
-        'load models
-        load_models()
         '=====================================================================
         'set camera location
         cam_x = 0
@@ -230,10 +199,17 @@ Public Class frmMain
         'draw_scene could come across.  Timer1 is deliberately NOT started - it
         'drove update_thread, which called draw_scene, which made PB1's legacy
         'context current on the UI thread and would fight the core context.
+        'The SplitContainer is gone.  Its left pane held the old per-part
+        'checkboxes, which Exporter Studio's PartsPanel replaced - that panel is
+        'drawn inside the GL surface, so there is nothing left to split.  PB1
+        'went with it: PB2 has already been reparented to the texture viewer
+        'above, and PB1 carried nothing else but the old fixed-function context.
+        Me.Controls.Remove(SplitContainer1)
+        SplitContainer1.Dispose()
         model_view = New GlModelView()
-        SplitContainer1.Panel2.Controls.Add(model_view)
+        model_view.Dock = DockStyle.Fill
+        Me.Controls.Add(model_view)
         model_view.BringToFront()
-        PB1.Visible = False
         _STARTED = True
         '=====================================================================
         Me.Text += " Version: " + Application.ProductVersion
@@ -304,366 +280,21 @@ tryagain:
             End
         End If
     End Sub
-    Private Sub load_models()
-        coffee_list = get_X_model(Application.StartupPath + "\models\coffee.x")
-    End Sub
+
     '----------------------------------------------------- draw
-    Public Sub draw_scene()
-        'Dead while the model window is core - kept because the texture viewer
-        'and the old loader still reference the Tao path around it.
-        If model_view IsNot Nothing Then Return
-        If stopGL Then Return
-        If gl_busy Then Return
-        gl_busy = True
-        If Not (Wgl.wglMakeCurrent(pb1_hDC, pb1_hRC)) Then
-            MessageBox.Show("Unable to make rendering context current")
-            Return
-        End If
 
-        ResizeGL()
-        ViewPerspective()
-        set_eyes()
-        Gl.glClearColor(0.13, 0.13, 0.13, 0.0)
-        Gl.glClear(Gl.GL_COLOR_BUFFER_BIT Or Gl.GL_DEPTH_BUFFER_BIT)
-        Gl.glLineWidth(1)
-        Gl.glDepthFunc(Gl.GL_LEQUAL)
-        Gl.glDisable(Gl.GL_BLEND)
-        Gl.glEnable(Gl.GL_DEPTH_TEST)
-        Gl.glEnable(Gl.GL_LIGHTING)
-        Gl.glDisable(Gl.GL_CULL_FACE)
-        Gl.glPolygonOffset(0.5, 1.0)
-        Gl.glDepthRange(0.0, 0.5)
-        Gl.glEnable(Gl.GL_SMOOTH)
-        Gl.glEnable(Gl.GL_NORMALIZE)
-        Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL)
-        '-----------------------------------
-        If m_show_faces.Checked Then
-            Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL)
-        End If
-        Gl.glColor3f(0.4!, 0.4!, 0.5!)
-        If Not Model_Loaded Then
-            Gl.glCallList(coffee_list)
-        Else
-            Dim cSet = SplitContainer1.Panel1.Controls
-            For i = 0 To object_cnt
-                Dim cb As CheckBox = cSet(i)
-                If cb.Checked Then
-                    Gl.glCallList(_object(i).d_list)
-                    _object(i).hiden = False
-                Else
-                    _object(i).hiden = True
-                End If
-            Next
-        End If
-        If m_show_faces.Checked Then
-            Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL)
-            Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE)
-            Gl.glColor3f(0.0!, 0.0!, 0.0!)
-            If Not Model_Loaded Then
-                Gl.glCallList(coffee_list)
-            Else
-                Dim cSet = SplitContainer1.Panel1.Controls
-                For i = 0 To object_cnt
-                    Dim cb As CheckBox = cSet(i)
-                    If cb.Checked Then
-                        Gl.glCallList(_object(i).d_list)
-                        _object(i).hiden = False
-                    Else
-                        _object(i).hiden = True
-                    End If
-                Next
-            End If
-        End If
-        Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE)
 
-        '-----------------------------------
-        If m_grid.Checked Then
-            Gl.glCallList(GRID_id)
-        End If
-        '-----------------------------------
-        If move_mod Or z_move Then    'draw reference lines to eye center
-            Gl.glColor3f(1.0, 1.0, 1.0)
-            Gl.glLineWidth(1)
-            Gl.glBegin(Gl.GL_LINES)
-            Gl.glVertex3f(U_look_point_x, U_look_point_y + 1000, U_look_point_z)
-            Gl.glVertex3f(U_look_point_x, U_look_point_y - 1000, U_look_point_z)
 
-            Gl.glVertex3f(U_look_point_x + 1000, U_look_point_y, U_look_point_z)
-            Gl.glVertex3f(U_look_point_x - 1000, U_look_point_y, U_look_point_z)
-
-            Gl.glVertex3f(U_look_point_x, U_look_point_y, U_look_point_z + 1000)
-            Gl.glVertex3f(U_look_point_x, U_look_point_y, U_look_point_z - 1000)
-            Gl.glEnd()
-        End If
-        ViewOrtho()
-        glutPrintBox(10, -20, model_name, 1.0, 1.0, 1.0, 1.0) ' view status
-
-        Wgl.wglSwapBuffers(pb1_hDC)
-        If frmTextureViewer.Visible Then
-            frmTextureViewer.draw()
-        End If
-        gl_busy = False
-
-    End Sub
-
-    Public Sub set_eyes()
-
-        Dim sin_x, sin_y, cos_x, cos_y As Single
-        sin_x = Sin(U_Cam_X_angle + angle_offset)
-        cos_x = Cos(U_Cam_X_angle + angle_offset)
-        cos_y = Cos(U_Cam_Y_angle)
-        sin_y = Sin(U_Cam_Y_angle)
-        cam_y = Sin(U_Cam_Y_angle) * view_radius
-        cam_x = (sin_x - (1 - cos_y) * sin_x) * view_radius
-        cam_z = (cos_x - (1 - cos_y) * cos_x) * view_radius
-
-        Glu.gluLookAt(cam_x + U_look_point_x, cam_y + U_look_point_y, cam_z + U_look_point_z, _
-                          U_look_point_x, U_look_point_y, U_look_point_z, 0.0F, 1.0F, 0.0F)
-
-        eyeX = cam_x + U_look_point_x
-        eyeY = cam_y + U_look_point_y
-        eyeZ = cam_z + U_look_point_z
-
-    End Sub
 
 #Region "update timing"
 
-    Private Delegate Sub update_screen_delegate()
-    Private Sub update_screen()
-        Try
-            If Me.InvokeRequired Then
-                Me.Invoke(New update_screen_delegate(AddressOf update_screen))
-            Else
-                draw_scene()
-            End If
-        Catch ex As Exception
-
-        End Try
-    End Sub
-    Public Function need_update() As Boolean
-        'This updates the display if the mouse has changed the view angles, locations or distance.
-        Dim update As Boolean = False
-
-        If look_point_x <> U_look_point_x Then
-            U_look_point_x = look_point_x
-            update = True
-        End If
-        If look_point_y <> U_look_point_y Then
-            U_look_point_y = look_point_y
-            update = True
-        End If
-        If look_point_z <> U_look_point_z Then
-            U_look_point_z = look_point_z
-            update = True
-        End If
-        If Cam_X_angle <> U_Cam_X_angle Then
-            U_Cam_X_angle = Cam_X_angle
-            update = True
-        End If
-        If Cam_Y_angle <> U_Cam_Y_angle Then
-            U_Cam_Y_angle = Cam_Y_angle
-            update = True
-        End If
-        If view_radius <> u_View_Radius Then
-            u_View_Radius = view_radius
-            update = True
-        End If
-
-        Return update
-    End Function
-    Public Sub update_mouse()
-        'Dim l_rot As Single
-        Dim sun_angle As Single = 0
-        Dim sun_radius As Single = 5
-        'This will run for the duration that Terra! is open.
-        'Its in a closed loop
-        screen_totaled_draw_time = 10.0
-        Dim swat As New Stopwatch
-        While _STARTED
-            need_update()
-            angle_offset = 0
-
-            '	Application.DoEvents()
-            If Not gl_busy And Not Me.WindowState = FormWindowState.Minimized Then
-
-                'If spin_light Then
-                '    Dim x, z As Single
-                '    l_rot += 0.01
-                '    If l_rot > 2 * PI Then
-                '        l_rot -= (2 * PI)
-                '    End If
-                '    If sun_radius > 0 Then
-                '        'sun_radius *= -1.0
-                '    End If
-                '    Dim s As Single = 2.0
-                '    sun_angle = l_rot
-                '    x = Cos(l_rot) * (sun_radius * s)
-                '    z = Sin(l_rot) * (sun_radius * s)
-                '    '                    position0(0) = x
-                '    ' position0(1) = sun_radius * s * 0.75
-                '    '                   position0(1) = 2.5
-
-                '    '                    position0(2) = z
-
-                'End If
 
 
-                'If Not w_changing Then
-                update_screen()
-                'End If
-                screen_draw_time = CInt(swat.ElapsedMilliseconds)
-                Dim freq = Stopwatch.Frequency
-                'screen_draw_time = screen_draw_time / freq
-                'screen_draw_time *= 0.001
-                swat.Reset()
-                swat.Start()
-                If screen_avg_counter > 15 Then
-                    screen_totaled_draw_time = screen_avg_draw_time / screen_avg_counter
-                    screen_avg_counter = 0
-                    screen_avg_draw_time = 0
-                Else
-                    If screen_draw_time < 1 Then
-                        'screen_draw_time = 5
-                    End If
-                    screen_avg_counter += 1
-                    screen_avg_draw_time += screen_draw_time
-                End If
-            End If
 
-            Thread.Sleep(3)
-        End While
-        'Thread.CurrentThread.Abort()
-    End Sub
 
-    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
-        Timer1.Enabled = False
-        update_thread.IsBackground = True
-        update_thread.Name = "mouse updater"
-        update_thread.Priority = ThreadPriority.Normal
-        update_thread.Start()
-    End Sub
 #End Region
 
-#Region "PB1 Mouse"
 
-    Private Sub PB1_MouseDown(sender As Object, e As MouseEventArgs) Handles PB1.MouseDown
-        If e.Button = Forms.MouseButtons.Left Then
-            mouse.X = e.X
-            mouse.Y = e.Y
-            M_DOWN = True
-        End If
-        If e.Button = Forms.MouseButtons.Right Then
-            'Timer1.Enabled = False
-            move_cam_z = True
-            mouse.X = e.X
-            mouse.Y = e.Y
-        End If
-
-    End Sub
-
-    Private Sub PB1_MouseEnter(sender As Object, e As EventArgs) Handles PB1.MouseEnter
-        PB1.Focus()
-    End Sub
-
-    Private Sub PB1_MouseMove(sender As Object, e As MouseEventArgs) Handles PB1.MouseMove
-        Dim dead As Integer = 5
-        Dim t As Single
-        Dim M_Speed As Single = 0.8
-        Dim ms As Single = 0.2F * view_radius ' distance away changes speed.. THIS WORKS WELL!
-        If M_DOWN Then
-            If e.X > (mouse.X + dead) Then
-                If e.X - mouse.X > 100 Then t = (1.0F * M_Speed)
-            Else : t = CSng(Sin((e.X - mouse.X) / 100)) * M_Speed
-                If Not z_move Then
-                    If move_mod Then ' check for modifying flag
-                        look_point_x -= ((t * ms) * (Cos(Cam_X_angle)))
-                        look_point_z -= ((t * ms) * (-Sin(Cam_X_angle)))
-                    Else
-                        Cam_X_angle -= t
-                    End If
-                    If Cam_X_angle > (2 * PI) Then Cam_X_angle -= (2 * PI)
-                    mouse.X = e.X
-                End If
-            End If
-            If e.X < (mouse.X - dead) Then
-                If mouse.X - e.X > 100 Then t = (M_Speed)
-            Else : t = CSng(Sin((mouse.X - e.X) / 100)) * M_Speed
-                If Not z_move Then
-                    If move_mod Then ' check for modifying flag
-                        look_point_x += ((t * ms) * (Cos(Cam_X_angle)))
-                        look_point_z += ((t * ms) * (-Sin(Cam_X_angle)))
-                    Else
-                        Cam_X_angle += t
-                    End If
-                    If Cam_X_angle < 0 Then Cam_X_angle += (2 * PI)
-                    mouse.X = e.X
-                End If
-            End If
-            ' ------- Y moves ----------------------------------
-            If e.Y > (mouse.Y + dead) Then
-                If e.Y - mouse.Y > 100 Then t = (M_Speed)
-            Else : t = CSng(Sin((e.Y - mouse.Y) / 100)) * M_Speed
-                If z_move Then
-                    look_point_y -= (t * ms)
-                Else
-                    If move_mod Then ' check for modifying flag
-                        look_point_z -= ((t * ms) * (Cos(Cam_X_angle)))
-                        look_point_x -= ((t * ms) * (Sin(Cam_X_angle)))
-                    Else
-                        If Cam_Y_angle - t < -PI / 2.0 Then
-                            Cam_Y_angle = (-PI / 2.0) + 0.001
-                        Else
-                            Cam_Y_angle -= t
-                        End If
-                    End If
-                End If
-                mouse.Y = e.Y
-            End If
-            If e.Y < (mouse.Y - dead) Then
-                If mouse.Y - e.Y > 100 Then t = (M_Speed)
-            Else : t = CSng(Sin((mouse.Y - e.Y) / 100)) * M_Speed
-                If z_move Then
-                    look_point_y += (t * ms)
-                Else
-                    If move_mod Then ' check for modifying flag
-                        look_point_z += ((t * ms) * (Cos(Cam_X_angle)))
-                        look_point_x += ((t * ms) * (Sin(Cam_X_angle)))
-                    Else
-                        Cam_Y_angle += t
-                    End If
-                    If Cam_Y_angle > 1.3 Then Cam_Y_angle = 1.3
-                End If
-                mouse.Y = e.Y
-            End If
-            Return
-        End If
-        If move_cam_z Then
-            If e.Y > (mouse.Y + dead) Then
-                If e.Y - mouse.Y > 100 Then t = (10)
-            Else : t = CSng(Sin((e.Y - mouse.Y) / 100)) * 12
-                view_radius += (t * (view_radius * 0.2))    ' zoom is factored in to Cam radius
-                mouse.Y = e.Y
-            End If
-            If e.Y < (mouse.Y - dead) Then
-                If mouse.Y - e.Y > 100 Then t = (10)
-            Else : t = CSng(Sin((mouse.Y - e.Y) / 100)) * 12
-                view_radius -= (t * (view_radius * 0.2))    ' zoom is factored in to Cam radius
-                If view_radius > -0.01 Then view_radius = -0.01
-                mouse.Y = e.Y
-            End If
-            If view_radius > -0.1 Then view_radius = -0.1
-            Return
-        End If
-        mouse.X = e.X
-        mouse.Y = e.Y
-    End Sub
-
-    Private Sub PB1_MouseUp(sender As Object, e As MouseEventArgs) Handles PB1.MouseUp
-        M_DOWN = False
-        move_cam_z = False
-    End Sub
-
-#End Region
 
     Private Sub m_open_Click(sender As Object, e As EventArgs)
         frmTreeList.Show()

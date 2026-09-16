@@ -51,6 +51,7 @@ Public Class ModelRenderer
         Public HasNormal As Boolean
         Public PackDxt1 As Boolean
         Public EnableAO As Boolean
+        Public Fx As String = ""
 
         ' ---- PBS_tiled / PBS_tiled_atlas_global ----
         ' IsAtlas decides which PROGRAM draws this part: the atlas path needs
@@ -387,6 +388,7 @@ Public Class ModelRenderer
                     pt.Ident = mat.Identifier
                     pt.PackDxt1 = mat.Flag("g_useNormalPackDXT1", False)
                     pt.EnableAO = mat.Flag("g_enableAO", False)
+                    pt.Fx = mat.Fx
                     ApplyTiledOrAtlas(pt, mat)
                     Dim maps = mat.ExtMaps()
                     If maps(0) IsNot Nothing Then pt.Albedo = LoadTex(maps(0), whiteTex)
@@ -568,6 +570,24 @@ Public Class ModelRenderer
     Public Sub SetPartHidden(i As Integer, hidden As Boolean)
         If i >= 0 AndAlso i < parts.Count Then parts(i).Hidden = hidden
     End Sub
+
+    'What PartsPanel wants for a row.
+    Public Function PartIdent(i As Integer) As String
+        If i < 0 OrElse i >= parts.Count Then Return ""
+        Return parts(i).Ident
+    End Function
+    Public Function PartMesh(i As Integer) As String
+        If i < 0 OrElse i >= parts.Count Then Return ""
+        Return parts(i).Name
+    End Function
+    Public Function PartFx(i As Integer) As String
+        If i < 0 OrElse i >= parts.Count Then Return ""
+        Return parts(i).Fx
+    End Function
+    Public Function PartTris(i As Integer) As Integer
+        If i < 0 OrElse i >= parts.Count Then Return 0
+        Return parts(i).Count \ 3
+    End Function
 
     Public Function IsPartHidden(i As Integer) As Boolean
         If i < 0 OrElse i >= parts.Count Then Return False

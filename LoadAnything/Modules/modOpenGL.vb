@@ -37,7 +37,11 @@ Module modOpenGL
         Application.DoEvents()
         Application.DoEvents()
         Application.DoEvents()
-        pb1_hDC = User.GetDC(frmMain.PB1.Handle)
+        'PB2 ONLY.  PB1 used to carry a second legacy context for the model
+        'window; that window is a core-profile GLControl now and PB1 is gone
+        'with the SplitContainer it lived in.  What is left here serves the
+        'TEXTURE viewer, which is still fixed function and still wants its own
+        'compatibility context.
         pb2_hDC = User.GetDC(frmMain.PB2.Handle)
         'frmMain.Controls.Add(frmMain.pb2)
         Application.DoEvents()
@@ -58,25 +62,10 @@ Module modOpenGL
         pfd.cAlphaBits = 8
         pfd.iLayerType = Gdi.PFD_MAIN_PLANE
 
-        PixelFormat = Gdi.ChoosePixelFormat(pb1_hDC, pfd)
         PixelFormat = Gdi.ChoosePixelFormat(pb2_hDC, pfd)
 
         If PixelFormat = 0 Then
             MessageBox.Show("Unable to retrieve pixel format")
-            End
-        End If
-        '---------------1
-        If Not (Gdi.SetPixelFormat(pb1_hDC, PixelFormat, pfd)) Then
-            MessageBox.Show("Unable to set pixel format")
-            End
-        End If
-        pb1_hRC = Wgl.wglCreateContext(pb1_hDC)
-        If pb1_hRC.ToInt32 = 0 Then
-            MessageBox.Show("Unable to get rendering context")
-            End
-        End If
-        If Not (Wgl.wglMakeCurrent(pb1_hDC, pb1_hRC)) Then
-            MessageBox.Show("Unable to make rendering context 1 current")
             End
         End If
         '---------------2
@@ -94,18 +83,13 @@ Module modOpenGL
             End
         End If
 
-        If Not (Wgl.wglMakeCurrent(pb1_hDC, pb1_hRC)) Then
-            MessageBox.Show("Unable to make rendering context 1 current")
-            End
-        End If
-        Wgl.wglShareLists(pb1_hRC, pb2_hRC)
 
         Glut.glutInit()
         Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, largestAnsio)
 
         Glut.glutInitDisplayMode(GLUT_RGBA Or GLUT_DOUBLE)
 
-        Gl.glViewport(0, 0, frmMain.PB1.Width, frmMain.PB1.Height)
+        Gl.glViewport(0, 0, frmMain.PB2.Width, frmMain.PB2.Height)
 
         Gl.glClearColor(0.0F, 0.0F, 0.0F, 1.0F)
         Gl.glEnable(Gl.GL_COLOR_MATERIAL)
@@ -117,7 +101,7 @@ Module modOpenGL
     End Sub
     Public Sub DisableOpenGL()
         Wgl.wglMakeCurrent(IntPtr.Zero, IntPtr.Zero)
-        Wgl.wglDeleteContext(pb1_hRC)
+        If pb2_hRC <> IntPtr.Zero Then Wgl.wglDeleteContext(pb2_hRC)
     End Sub
     Public Sub glutPrint(ByVal x As Single, ByVal y As Single, _
         ByVal text As String, ByVal r As Single, ByVal g As Single, ByVal b As Single, ByVal a As Single)

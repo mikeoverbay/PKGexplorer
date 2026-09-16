@@ -13,6 +13,7 @@
 Module ModelIndex
 
     Private _index As PkgIndex
+    Private _library As BuildingLibrary
     Private _builtFor As String = ""
 
     ''' <summary>
@@ -64,6 +65,25 @@ Module ModelIndex
             System.Windows.Forms.Cursor.Current = old
         End Try
         Return _index
+    End Function
+
+    ''' <summary>
+    ''' The scanned model library, which is what fills the browser panel.  Built
+    ''' once alongside the index; on this install it is ~325 assets out of half
+    ''' a million indexed entries.
+    ''' </summary>
+    Public Function Get_Library() As BuildingLibrary
+        Dim ix = Get_Index()
+        If ix Is Nothing Then Return Nothing
+        If _library IsNot Nothing Then Return _library
+        Dim old = System.Windows.Forms.Cursor.Current
+        Try
+            System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor
+            _library = BuildingLibrary.Scan(ix)
+        Finally
+            System.Windows.Forms.Cursor.Current = old
+        End Try
+        Return _library
     End Function
 
 End Module
