@@ -58,72 +58,7 @@ Public Class frmMain
 
 
 
-    ''' <summary>
-    ''' Export the loaded model.  All three writers are Exporter Studio's:
-    ''' MeshExport for OBJ and STL, GlbFile for GLB.
-    ''' </summary>
-    Private Sub export_model()
-        If model_view Is Nothing OrElse Not model_view.Renderer3D.HasGeometry Then
-            MsgBox("Load a model first.", MsgBoxStyle.Information, "Nothing to export")
-            Return
-        End If
-        Dim r = model_view.Renderer3D
-        Dim hidden = 0
-        For i = 0 To r.PartCount - 1
-            If r.IsPartHidden(i) Then hidden += 1
-        Next
 
-        Using dlg As New frmExport(r.PartCount, hidden, r.TriangleCount)
-            If dlg.ShowDialog(Me) <> Forms.DialogResult.OK Then Return
-
-            Dim pos As OpenTK.Mathematics.Vector3() = Nothing
-            Dim nrm As OpenTK.Mathematics.Vector3() = Nothing
-            Dim uv As OpenTK.Mathematics.Vector2() = Nothing
-            Dim idx As Integer() = Nothing
-            Dim groups As List(Of ExportPart) = Nothing
-            If Not r.GetExportMesh(dlg.VisibleOnly, pos, nrm, uv, idx, groups) Then
-                MsgBox("Nothing visible to export.", MsgBoxStyle.Exclamation, "Export")
-                Return
-            End If
-
-            Using sfd As New SaveFileDialog()
-                sfd.FileName = IO.Path.GetFileNameWithoutExtension(model_name) + "." + dlg.Format
-                sfd.Filter = dlg.Format.ToUpper + " file|*." + dlg.Format
-                sfd.InitialDirectory = My.Settings.extract_location
-                If sfd.ShowDialog(Me) <> Forms.DialogResult.OK Then Return
-                Dim oldCur = Cursor.Current
-                Try
-                    Cursor.Current = Cursors.WaitCursor
-                    If dlg.Format = "glb" Then
-                        Dim gg As New List(Of GlbGroup)
-                        For Each g In groups
-                            gg.Add(New GlbGroup With {.Name = g.Name, .Material = g.Material,
-                                                      .FirstIndex = g.FirstIndex, .IndexCount = g.IndexCount})
-                        Next
-                        Dim nb = GlbFile.Write(sfd.FileName, pos, idx, gg, nrm, Nothing, uv,
-                                               Nothing, dlg.ZUp, dlg.Scale, "PKG Explorer")
-                        MsgBox("Wrote " + (idx.Length \ 3).ToString("N0") + " triangles, " +
-                               nb.ToString("N0") + " bytes to" + vbCrLf + sfd.FileName,
-                               MsgBoxStyle.Information, "Exported")
-                    Else
-                        Dim og As New List(Of ObjGroup)
-                        For Each g In groups
-                            og.Add(New ObjGroup With {.Name = g.Name, .Material = g.Material,
-                                                      .FirstIndex = g.FirstIndex, .IndexCount = g.IndexCount})
-                        Next
-                        Dim res = MeshExport.Write(sfd.FileName, dlg.Format, pos, idx,
-                                                   dlg.ZUp, dlg.Scale, uv, og)
-                        MsgBox("Wrote " + res.Triangles.ToString("N0") + " triangles to" + vbCrLf +
-                               res.Path, MsgBoxStyle.Information, "Exported")
-                    End If
-                Catch ex As Exception
-                    MsgBox("Export failed:" + vbCrLf + ex.Message, MsgBoxStyle.Exclamation, "Export")
-                Finally
-                    Cursor.Current = oldCur
-                End Try
-            End Using
-        End Using
-    End Sub
 
 
 #Region "frmMain events"
@@ -451,27 +386,20 @@ tryagain:
         End If
     End Sub
 
+    'These walked SplitContainer1.Panel1's checkboxes, which no longer exist -
+    'the panel was disposed with the splitter, so both would have thrown on
+    'click.  They do what the parts panel's own show-all / hide-all do now.
     Private Sub m_hide_all_Click(sender As Object, e As EventArgs) Handles m_hide_all.Click
-        If Model_Loaded Then
-            Dim Cset = SplitContainer1.Panel1.Controls
-            For Each c In Cset
-                Dim cb As CheckBox = c
-                cb.Checked = False
-            Next
-        End If
+        If model_view IsNot Nothing Then model_view.HideAllParts()
     End Sub
 
     Private Sub m_unhide_all_Click(sender As Object, e As EventArgs) Handles m_unhide_all.Click
-        If Model_Loaded Then
-            Dim Cset = SplitContainer1.Panel1.Controls
-            For Each c In Cset
-                Dim cb As CheckBox = c
-                cb.Checked = True
-            Next
-        End If
+        If model_view IsNot Nothing Then model_view.ShowAllParts()
     End Sub
 
     Private Sub m_show_faces_Click(sender As Object, e As EventArgs) Handles m_show_faces.Click
+        'Wireframe lives on the renderer now; W over the view does the same.
+        If model_view IsNot Nothing Then model_view.ToggleWireframe()
         If m_show_faces.Checked Then
             m_show_faces.ForeColor = Color.Red
         Else
@@ -486,9 +414,7 @@ tryagain:
     ''' load on .NET 8 - but leaving the menu item doing nothing useful was
     ''' worse than having it write a format that works.
     ''' </summary>
-    Private Sub m_export_obj_Click(sender As Object, e As EventArgs) Handles m_export_fbx.Click
-        export_model()
-    End Sub
+
 
 
 End Class

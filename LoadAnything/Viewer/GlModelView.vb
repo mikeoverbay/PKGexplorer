@@ -307,12 +307,7 @@ Public Class GlModelView
                 Return
             End If
             If partsPanel IsNot Nothing AndAlso partsPanel.HitsPanel(e.X, e.Y) Then
-                Dim row = partsPanel.RowAtPixel(e.X, e.Y)
-                If row >= 0 AndAlso row < partsPanel.Rows.Count Then
-                    Dim pr = partsPanel.Rows(row)
-                    pr.Hidden = Not pr.Hidden
-                    renderer.SetPartHidden(pr.Index, pr.Hidden)
-                End If
+                HandlePartsClick(e.X, e.Y)
                 Invalidate()
                 Return
             End If
@@ -445,6 +440,112 @@ Public Class GlModelView
                 If partsPanel IsNot Nothing Then partsPanel.ScrollBy(1)
         End Select
         Invalidate()
+    End Sub
+
+    ''' <summary>
+    ''' The parts panel's own footer, theirs: format cycles on click, then
+    ''' export-visible, export-all, show-all, hide-all, and otherwise a row
+    ''' toggles.  This is what replaced the WinForms export dialog - the footer
+    ''' IS the export UI in Exporter Studio, so having a second one in a
+    ''' separate window was the mismatch worth removing.
+    ''' </summary>
+    Private Sub HandlePartsClick(x As Single, y As Single)
+        If partsPanel.HitsExportFormat(x, y) Then
+            'glb first after obj: it is the one that carries normals, tangents
+            'and both uv sets, which the other two cannot.
+            Select Case partsPanel.ExportFormat
+                Case "obj" : partsPanel.ExportFormat = "glb"
+                Case "glb" : partsPanel.ExportFormat = "stl"
+                Case Else : partsPanel.ExportFormat = "obj"
+            End Select
+            Return
+        End If
+        If partsPanel.HitsExportVisible(x, y) Then
+            ExportFromViewer(True) : Return
+        End If
+        If partsPanel.HitsExportAll(x, y) Then
+            ExportFromViewer(False) : Return
+        End If
+        If partsPanel.HitsShowAll(x, y) Then
+            partsPanel.ShowAll() : ApplyPartVisibility() : Return
+        End If
+        If partsPanel.HitsHideAll(x, y) Then
+            partsPanel.HideAll() : ApplyPartVisibility() : Return
+        End If
+        Dim row = partsPanel.RowAtPixel(x, y)
+        If row >= 0 AndAlso row < partsPanel.Rows.Count Then
+            Dim pr = partsPanel.Rows(row)
+            pr.Hidden = Not pr.Hidden
+            renderer.SetPartHidden(pr.Index, pr.Hidden)
+        End If
+    End Sub
+
+    ''' <summary>Show-all / hide-all from the menu, so the two menu entries do
+    ''' the same thing the panel's own buttons do.</summary>
+    Public Sub ShowAllParts()
+        If partsPanel Is Nothing Then Return
+        partsPanel.ShowAll() : ApplyPartVisibility() : Invalidate()
+    End Sub
+
+    Public Sub HideAllParts()
+        If partsPanel Is Nothing Then Return
+        partsPanel.HideAll() : ApplyPartVisibility() : Invalidate()
+    End Sub
+
+    Public Sub ToggleWireframe()
+        renderer.Wireframe = Not renderer.Wireframe
+        Invalidate()
+    End Sub
+
+    ''' <summary>Push every row's Hidden back onto the renderer after a
+    ''' show-all / hide-all.</summary>
+    Private Sub ApplyPartVisibility()
+        For Each pr In partsPanel.Rows
+            renderer.SetPartHidden(pr.Index, pr.Hidden)
+        Next
+    End Sub
+
+    Private Sub ExportFromViewer(visibleOnly As Boolean)
+        Dim fmt = If(String.IsNullOrEmpty(partsPanel.ExportFormat), "obj",
+                     partsPanel.ExportFormat.ToLowerInvariant())
+        Dim pos As Vector3() = Nothing, nrm As Vector3() = Nothing
+        Dim uv As Vector2() = Nothing
+        Dim idx As Integer() = Nothing
+        Dim groups As List(Of ExportPart) = Nothing
+        If Not renderer.GetExportMesh(visibleOnly, pos, nrm, uv, idx, groups) Then
+            partsPanel.LastExport = "nothing to export"
+            Return
+        End If
+
+        Using sfd As New SaveFileDialog()
+            sfd.FileName = IO.Path.GetFileNameWithoutExtension(
+                If(String.IsNullOrEmpty(modGlobals.model_name), "model", modGlobals.model_name)) & "." & fmt
+            sfd.Filter = fmt.ToUpper() & " file|*." & fmt
+            sfd.InitialDirectory = My.Settings.extract_location
+            If sfd.ShowDialog() <> DialogResult.OK Then Return
+            Try
+                If fmt = "glb" Then
+                    Dim gg As New List(Of GlbGroup)
+                    For Each g In groups
+                        gg.Add(New GlbGroup With {.Name = g.Name, .Material = g.Material,
+                                                  .FirstIndex = g.FirstIndex, .IndexCount = g.IndexCount})
+                    Next
+                    GlbFile.Write(sfd.FileName, pos, idx, gg, nrm, Nothing, uv,
+                                  Nothing, False, 1.0F, "PKG Explorer")
+                Else
+                    Dim og As New List(Of ObjGroup)
+                    For Each g In groups
+                        og.Add(New ObjGroup With {.Name = g.Name, .Material = g.Material,
+                                                  .FirstIndex = g.FirstIndex, .IndexCount = g.IndexCount})
+                    Next
+                    MeshExport.Write(sfd.FileName, fmt, pos, idx, False, 1.0F, uv, og)
+                End If
+                partsPanel.LastExport = (idx.Length \ 3).ToString("N0") & " tris -> " &
+                                        IO.Path.GetFileName(sfd.FileName)
+            Catch ex As Exception
+                partsPanel.LastExport = "failed: " & ex.Message
+            End Try
+        End Using
     End Sub
 
     Private Sub LoadRow(row As Integer)
