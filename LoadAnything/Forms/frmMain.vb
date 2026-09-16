@@ -29,6 +29,92 @@ Imports System.Globalization
 Public Class frmMain
     Public update_thread As New Thread(AddressOf update_mouse)
 
+    ''' <summary>The core-profile model surface that replaced PB1's fixed
+    ''' function drawing.  See Viewer\GlModelView.vb.</summary>
+    Public model_view As GlModelView
+
+    ''' <summary>Loads one package entry into the model window.  Called by the
+    ''' tree when a .primitives_processed is double clicked.</summary>
+    Public Sub ShowModel(entry As String)
+        If model_view Is Nothing Then Return
+        Dim ix = ModelIndex.Get_Index()
+        If ix Is Nothing Then Return
+        If Not model_view.LoadEntry(ix, entry) Then
+            MsgBox("No readable geometry in:" + vbCrLf + entry,
+                   MsgBoxStyle.Exclamation, "Nothing to draw")
+            Return
+        End If
+        model_name = IO.Path.GetFileName(entry)
+        Me.Text = "Model Viewer  -  " + model_name +
+                  "   (" + model_view.Renderer3D.PartCount.ToString + " parts, " +
+                  model_view.Renderer3D.TriangleCount.ToString("N0") + " tris)"
+        Model_Loaded = True
+        rebuild_parts_panel()
+    End Sub
+
+    ''' <summary>
+    ''' One checkbox per draw group, in the left pane PKG Explorer already had
+    ''' for this.  The old loader built these from its own _object array; the
+    ''' parts now come from the renderer, and unticking one hides it in the view
+    ''' and drops it from a "visible only" export.
+    ''' </summary>
+    Private Sub rebuild_parts_panel()
+        Dim host = SplitContainer1.Panel1
+        host.Controls.Clear()
+        If model_view Is Nothing OrElse Not model_view.Renderer3D.HasGeometry Then Return
+        Dim r = model_view.Renderer3D
+        Dim y = 5
+        For i = 0 To r.PartCount - 1
+            Dim cb As New CheckBox With {
+                .AutoSize = True, .Checked = True, .Tag = i,
+                .ForeColor = Color.Wheat, .BackColor = Color.Transparent,
+                .Text = i.ToString("00") + "  " + r.PartLabel(i)}
+            AddHandler cb.CheckedChanged, AddressOf part_toggled
+            host.Controls.Add(cb)
+            cb.Location = New Point(3, y)
+            y += cb.Height - 2
+        Next
+        host.AutoScroll = True          'a tank chassis runs to dozens of groups
+    End Sub
+
+    Private Sub part_toggled(sender As Object, e As EventArgs)
+        Dim cb = TryCast(sender, CheckBox)
+        If cb Is Nothing OrElse model_view Is Nothing Then Return
+        model_view.Renderer3D.SetPartHidden(CInt(cb.Tag), Not cb.Checked)
+        model_view.Invalidate()
+    End Sub
+
+    Private Sub export_model(format As String)
+        If model_view Is Nothing OrElse Not model_view.Renderer3D.HasGeometry Then
+            MsgBox("Load a model first.", MsgBoxStyle.Information, "Nothing to export")
+            Return
+        End If
+        Dim visibleOnly = (MsgBox("Export only the parts that are ticked?" + vbCrLf + vbCrLf +
+                                  "No exports the whole model.",
+                                  MsgBoxStyle.YesNo, "Export") = MsgBoxResult.Yes)
+        Dim pos As OpenTK.Mathematics.Vector3() = Nothing
+        Dim uv As OpenTK.Mathematics.Vector2() = Nothing
+        Dim idx As Integer() = Nothing
+        If Not model_view.Renderer3D.GetExportMesh(visibleOnly, pos, uv, idx) Then
+            MsgBox("Nothing visible to export.", MsgBoxStyle.Exclamation, "Export")
+            Return
+        End If
+        Using sfd As New SaveFileDialog()
+            sfd.FileName = IO.Path.GetFileNameWithoutExtension(model_name) + "." + format
+            sfd.Filter = format.ToUpper + " file|*." + format
+            sfd.InitialDirectory = My.Settings.extract_location
+            If sfd.ShowDialog() <> Forms.DialogResult.OK Then Return
+            Try
+                'zUp:=False, scale 1 - WoT metres straight through, no unit games.
+                Dim res = MeshExport.Write(sfd.FileName, format, pos, idx, False, 1.0F, uv)
+                MsgBox("Wrote " + res.Triangles.ToString("N0") + " triangles to" + vbCrLf +
+                       res.Path, MsgBoxStyle.Information, "Exported")
+            Catch ex As Exception
+                MsgBox("Export failed:" + vbCrLf + ex.Message, MsgBoxStyle.Exclamation, "Export")
+            End Try
+        End Using
+    End Sub
+
 
 #Region "frmMain events"
 
@@ -102,9 +188,17 @@ Public Class frmMain
         Cam_Y_angle = -PI * 0.25
         view_radius = -10.0
         '=====================================================================
-        'signal app is ready to render and start updating thread
+        'The model window is an OpenGL 3.3 CORE surface now.  PB1 stays in the
+        'tree as the parent PB2 was reparented out of, but nothing draws to it:
+        'core has no display lists, no matrix stack and no glLightfv, so none of
+        'draw_scene could come across.  Timer1 is deliberately NOT started - it
+        'drove update_thread, which called draw_scene, which made PB1's legacy
+        'context current on the UI thread and would fight the core context.
+        model_view = New GlModelView()
+        SplitContainer1.Panel2.Controls.Add(model_view)
+        model_view.BringToFront()
+        PB1.Visible = False
         _STARTED = True
-        Timer1.Start()
         '=====================================================================
         Me.Text += " Version: " + Application.ProductVersion
     End Sub
@@ -179,6 +273,9 @@ tryagain:
     End Sub
     '----------------------------------------------------- draw
     Public Sub draw_scene()
+        'Dead while the model window is core - kept because the texture viewer
+        'and the old loader still reference the Tao path around it.
+        If model_view IsNot Nothing Then Return
         If stopGL Then Return
         If gl_busy Then Return
         gl_busy = True
@@ -678,6 +775,7 @@ tryagain:
         frmTreeList.Show()
     End Sub
 
+
     Private Sub m_grid_Click(sender As Object, e As EventArgs) Handles m_grid.Click
         If m_grid.Checked Then
             m_grid.ForeColor = Color.Red
@@ -715,7 +813,17 @@ tryagain:
     End Sub
 
 
-    Private Sub m_export_fbx_Click(sender As Object, e As EventArgs) Handles m_export_fbx.Click
+    ''' <summary>
+    ''' The old FBX entry now exports OBJ, through Exporter Studio's MeshExport.
+    ''' FBX itself is still gone - FbxSDK.dll is mixed-mode C++/CLI and cannot
+    ''' load on .NET 8 - but leaving the menu item doing nothing useful was
+    ''' worse than having it write a format that works.
+    ''' </summary>
+    Private Sub m_export_obj_Click(sender As Object, e As EventArgs) Handles m_export_fbx.Click
+        export_model("obj")
+    End Sub
+
+    Private Sub m_export_fbx_Click_disabled(sender As Object, e As EventArgs)
         If Not Model_Loaded Then Return
         'FBX export is off while the app moves to .NET 8.  The old exporter was
         'built on FbxSDK.dll, which is mixed-mode C++/CLI and cannot load on

@@ -18,6 +18,85 @@ Module modXmodelLoader
 
 
 
+    ''' <summary>
+    ''' Parses a single-object DirectX ASCII .x into the module arrays and stops
+    ''' there - no GL at all.
+    '''
+    ''' Split out of get_X_model so the coffee cup can be shown in the CORE
+    ''' profile model window.  get_X_model ends by baking a display list, and
+    ''' display lists do not exist in core; the cup vanished from the start-up
+    ''' view when that window stopped being fixed function.  The parse itself is
+    ''' unchanged and get_X_model still calls it.
+    ''' </summary>
+    Public Function parse_X_model(file_ As String) As Boolean
+        Try
+            Dim s As New StreamReader(file_)
+            Dim txt As String = ""
+            While Not txt.ToLower.Contains("mesh")
+                txt = s.ReadLine
+            End While
+            txt = s.ReadLine
+            Dim brk = txt.Split(";")
+            Dim vertice_count = CInt(brk(0))
+            ReDim vertices(vertice_count)
+            For i = 0 To vertice_count - 1
+                vertices(i) = New vec3
+                brk = s.ReadLine.Split(";")
+                vertices(i).x = CSng(brk(0))
+                vertices(i).y = CSng(brk(1))
+                vertices(i).z = CSng(brk(2))
+            Next
+            s.ReadLine()
+            txt = s.ReadLine
+            brk = txt.Split(";")
+            Dim indice_count As Int32 = CInt(brk(0))
+            ReDim indices(indice_count)
+            For i = 0 To indice_count - 1
+                indices(i) = New _indice
+                brk = s.ReadLine.Split(";")
+                brk = brk(1).Split(",")
+                indices(i).a = CInt(brk(0))
+                indices(i).b = CInt(brk(1))
+                indices(i).c = CInt(brk(2))
+            Next
+            s.Close()
+
+            s = New StreamReader(file_)
+            While Not txt.ToLower.Contains("meshnormals")
+                txt = s.ReadLine
+            End While
+            brk = s.ReadLine.Split(";")
+            Dim normal_count As Int32 = CInt(brk(0))
+            ReDim normals(normal_count)
+            For i = 0 To normal_count - 1
+                normals(i) = New vec3
+                brk = s.ReadLine.Split(";")
+                normals(i).x = CSng(brk(0))
+                normals(i).y = CSng(brk(1))
+                normals(i).z = CSng(brk(2))
+            Next
+            s.Close()
+
+            s = New StreamReader(file_)
+            While Not txt.ToLower.Contains("meshtexturecoords")
+                txt = s.ReadLine
+            End While
+            brk = s.ReadLine.Split(";")
+            Dim txt_coord_cnt As Int32 = CInt(brk(0))
+            ReDim uvs(txt_coord_cnt)
+            For i = 0 To txt_coord_cnt - 1
+                uvs(i) = New vec2
+                brk = s.ReadLine.Split(";")
+                uvs(i).x = CSng(brk(0))
+                uvs(i).y = CSng(brk(1))
+            Next
+            s.Close()
+            Return indices.Length > 0 AndAlso vertices.Length > 0
+        Catch
+            Return False
+        End Try
+    End Function
+
     Public Function get_X_model(file_ As String) As Integer
         'reads single object directX ASCII file.
         ' IN: path and name of file to load

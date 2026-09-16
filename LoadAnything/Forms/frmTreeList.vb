@@ -247,21 +247,12 @@ Public Class frmTreeList
                     frmVisualViewer.tb.SelectionStart = 0
                     Exit Select
                 Case ".primitives", ".primitives_processed"
-                    Dim ms As New MemoryStream
-                    Dim ent = zf(entry_name)
-                    If ent IsNot Nothing Then
-                        ent.Extract(ms)
-                    Else
-                        ms.Dispose()
-                        Return
-                    End If
-                    file_name = leaf        'loadmodel names this file in its error box
-                    Try
-                        loadmodel(ms)
-                        model_name = leaf
-                    Catch ex As Exception
-                        MsgBox("Unable to load that model", MsgBoxStyle.Exclamation, "Dammit!")
-                    End Try
+                    'Goes to the core-profile model window now.  It reads the
+                    'packages through Exporter Studio's own index rather than
+                    'off a stream, so it wants the entry PATH - and the old
+                    'fixed function loadmodel() path is no longer reachable.
+                    file_name = leaf
+                    frmMain.ShowModel(entry_name)
                     Exit Select
             End Select
         Catch ex As Exception

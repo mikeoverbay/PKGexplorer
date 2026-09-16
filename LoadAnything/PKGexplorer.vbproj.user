@@ -24,5 +24,8 @@
     <Compile Update="Forms\frmVisualViewer.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Viewer\GlModelView.vb">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

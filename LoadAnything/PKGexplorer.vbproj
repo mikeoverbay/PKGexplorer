@@ -76,8 +76,31 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTK" Version="4.7.1" />
-    <PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
+    <!--
+      OpenTK is held at 4.8.2 with GLControl 4.0.1, and the pins matter.
+
+      GLControl is what lets a CORE context live inside PKG Explorer's own
+      WinForms model window instead of a separate GameWindow.  But every 4.x
+      GLControl demands a floor on OpenTK: 4.0.1 wants 4.8.2, 4.0.2 wants 4.9.3.
+      Exporter Studio's sources - copied under Viewer\ - are written against
+      4.7.1, and on 4.9.3 their AtlasFile.vb stops compiling, because
+      CompressedTexSubImage3D's overloads changed.  AtlasFile is what draws the
+      tiled and atlas materials, which is most of the surface of a building, so
+      losing it is not an option.
+
+      4.8.2 is the one version that satisfies both: new enough for GLControl
+      4.0.1, old enough that their file builds UNMODIFIED.  The sub-packages are
+      pinned explicitly because a direct PackageReference beats a transitive
+      one; without them NuGet floats the graph up and the build breaks again.
+    -->
+    <PackageReference Include="OpenTK" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Core" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Graphics" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Mathematics" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Windowing.Common" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.8.2" />
+    <PackageReference Include="OpenTK.GLControl" Version="4.0.1" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
     <!-- codepage 437 for DotNetZip entry names; .NET 8 drops the legacy pages -->
     <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
