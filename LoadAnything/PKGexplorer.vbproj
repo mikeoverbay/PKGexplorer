@@ -4,11 +4,12 @@
     Retargeted from .NET Framework 4.8 to net8.0-windows so the viewer can use
     OpenTK 4.x (which cannot be referenced from .NET Framework at all).
 
-    Two casualties of the move, both deliberate:
-      FbxSDK.dll  - mixed-mode C++/CLI, cannot load on .NET 8.  The FBX export
-                    is stubbed out here and comes back on AssimpNet.
-      SlimDX.dll  - also mixed-mode, but nothing in the source referenced it,
-                    so it is simply gone.
+    Two assemblies went with the move, both mixed-mode C++/CLI and therefore
+    unloadable on .NET 8:
+      FbxSDK.dll  - drove the old FBX exporter.  Both are deleted; the format
+                    it wrote was years out of date and OBJ / STL / GLB replace
+                    it, through Exporter Studio's writers.
+      SlimDX.dll  - nothing in the source ever referenced it.
 
     Still x86: DevIL.dll / ILU.dll / ILUT.dll / freeglut.dll next to the exe are
     native 32-bit, so the process has to stay 32-bit until those are replaced.
@@ -62,17 +63,6 @@
     <Import Include="System.Threading.Tasks" />
     <Import Include="System.Windows.Forms" />
     <Import Include="System.Xml.Linq" />
-  </ItemGroup>
-
-  <!--
-    FBX export is out of the build until it is rebuilt on AssimpNet.  Leaving
-    the source in the tree on purpose - it is the reference for what the new
-    exporter has to produce, including the UV2 layer and the material set.
-  -->
-  <ItemGroup>
-    <Compile Remove="Forms\frmFBX.vb" />
-    <Compile Remove="Forms\frmFBX.Designer.vb" />
-    <EmbeddedResource Remove="Forms\frmFBX.resx" />
   </ItemGroup>
 
   <ItemGroup>

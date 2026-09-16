@@ -84,34 +84,70 @@ Public Class frmMain
         model_view.Invalidate()
     End Sub
 
-    Private Sub export_model(format As String)
+    ''' <summary>
+    ''' Export the loaded model.  All three writers are Exporter Studio's:
+    ''' MeshExport for OBJ and STL, GlbFile for GLB.
+    ''' </summary>
+    Private Sub export_model()
         If model_view Is Nothing OrElse Not model_view.Renderer3D.HasGeometry Then
             MsgBox("Load a model first.", MsgBoxStyle.Information, "Nothing to export")
             Return
         End If
-        Dim visibleOnly = (MsgBox("Export only the parts that are ticked?" + vbCrLf + vbCrLf +
-                                  "No exports the whole model.",
-                                  MsgBoxStyle.YesNo, "Export") = MsgBoxResult.Yes)
-        Dim pos As OpenTK.Mathematics.Vector3() = Nothing
-        Dim uv As OpenTK.Mathematics.Vector2() = Nothing
-        Dim idx As Integer() = Nothing
-        If Not model_view.Renderer3D.GetExportMesh(visibleOnly, pos, uv, idx) Then
-            MsgBox("Nothing visible to export.", MsgBoxStyle.Exclamation, "Export")
-            Return
-        End If
-        Using sfd As New SaveFileDialog()
-            sfd.FileName = IO.Path.GetFileNameWithoutExtension(model_name) + "." + format
-            sfd.Filter = format.ToUpper + " file|*." + format
-            sfd.InitialDirectory = My.Settings.extract_location
-            If sfd.ShowDialog() <> Forms.DialogResult.OK Then Return
-            Try
-                'zUp:=False, scale 1 - WoT metres straight through, no unit games.
-                Dim res = MeshExport.Write(sfd.FileName, format, pos, idx, False, 1.0F, uv)
-                MsgBox("Wrote " + res.Triangles.ToString("N0") + " triangles to" + vbCrLf +
-                       res.Path, MsgBoxStyle.Information, "Exported")
-            Catch ex As Exception
-                MsgBox("Export failed:" + vbCrLf + ex.Message, MsgBoxStyle.Exclamation, "Export")
-            End Try
+        Dim r = model_view.Renderer3D
+        Dim hidden = 0
+        For i = 0 To r.PartCount - 1
+            If r.IsPartHidden(i) Then hidden += 1
+        Next
+
+        Using dlg As New frmExport(r.PartCount, hidden, r.TriangleCount)
+            If dlg.ShowDialog(Me) <> Forms.DialogResult.OK Then Return
+
+            Dim pos As OpenTK.Mathematics.Vector3() = Nothing
+            Dim nrm As OpenTK.Mathematics.Vector3() = Nothing
+            Dim uv As OpenTK.Mathematics.Vector2() = Nothing
+            Dim idx As Integer() = Nothing
+            Dim groups As List(Of ExportPart) = Nothing
+            If Not r.GetExportMesh(dlg.VisibleOnly, pos, nrm, uv, idx, groups) Then
+                MsgBox("Nothing visible to export.", MsgBoxStyle.Exclamation, "Export")
+                Return
+            End If
+
+            Using sfd As New SaveFileDialog()
+                sfd.FileName = IO.Path.GetFileNameWithoutExtension(model_name) + "." + dlg.Format
+                sfd.Filter = dlg.Format.ToUpper + " file|*." + dlg.Format
+                sfd.InitialDirectory = My.Settings.extract_location
+                If sfd.ShowDialog(Me) <> Forms.DialogResult.OK Then Return
+                Dim oldCur = Cursor.Current
+                Try
+                    Cursor.Current = Cursors.WaitCursor
+                    If dlg.Format = "glb" Then
+                        Dim gg As New List(Of GlbGroup)
+                        For Each g In groups
+                            gg.Add(New GlbGroup With {.Name = g.Name, .Material = g.Material,
+                                                      .FirstIndex = g.FirstIndex, .IndexCount = g.IndexCount})
+                        Next
+                        Dim nb = GlbFile.Write(sfd.FileName, pos, idx, gg, nrm, Nothing, uv,
+                                               Nothing, dlg.ZUp, dlg.Scale, "PKG Explorer")
+                        MsgBox("Wrote " + (idx.Length \ 3).ToString("N0") + " triangles, " +
+                               nb.ToString("N0") + " bytes to" + vbCrLf + sfd.FileName,
+                               MsgBoxStyle.Information, "Exported")
+                    Else
+                        Dim og As New List(Of ObjGroup)
+                        For Each g In groups
+                            og.Add(New ObjGroup With {.Name = g.Name, .Material = g.Material,
+                                                      .FirstIndex = g.FirstIndex, .IndexCount = g.IndexCount})
+                        Next
+                        Dim res = MeshExport.Write(sfd.FileName, dlg.Format, pos, idx,
+                                                   dlg.ZUp, dlg.Scale, uv, og)
+                        MsgBox("Wrote " + res.Triangles.ToString("N0") + " triangles to" + vbCrLf +
+                               res.Path, MsgBoxStyle.Information, "Exported")
+                    End If
+                Catch ex As Exception
+                    MsgBox("Export failed:" + vbCrLf + ex.Message, MsgBoxStyle.Exclamation, "Export")
+                Finally
+                    Cursor.Current = oldCur
+                End Try
+            End Using
         End Using
     End Sub
 
@@ -820,18 +856,8 @@ tryagain:
     ''' worse than having it write a format that works.
     ''' </summary>
     Private Sub m_export_obj_Click(sender As Object, e As EventArgs) Handles m_export_fbx.Click
-        export_model("obj")
+        export_model()
     End Sub
 
-    Private Sub m_export_fbx_Click_disabled(sender As Object, e As EventArgs)
-        If Not Model_Loaded Then Return
-        'FBX export is off while the app moves to .NET 8.  The old exporter was
-        'built on FbxSDK.dll, which is mixed-mode C++/CLI and cannot load on
-        'anything past .NET Framework.  Forms\frmFBX.vb is still in the tree as
-        'the reference for what the AssimpNet replacement has to emit.
-        MsgBox("FBX export is temporarily disabled." + vbCrLf + vbCrLf + _
-               "The old exporter used FbxSDK.dll, which cannot run on .NET 8." + vbCrLf + _
-               "It is being rebuilt on AssimpNet.", _
-               MsgBoxStyle.Information, "Coming back shortly")
-    End Sub
+
 End Class

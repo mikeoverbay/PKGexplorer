@@ -26,6 +26,16 @@ Imports OpenTK.Mathematics
 '''
 ''' Written 2026-09-16 by session "PKG Explorer codebase review".
 ''' </summary>
+''' <summary>One draw group as the exporters want it.  Maps onto ObjGroup for
+''' OBJ and GlbGroup for GLB - the two carry the same four fields under
+''' different names, so neither exporter's type leaks out of frmExport.</summary>
+Public Class ExportPart
+    Public Property Name As String = ""
+    Public Property Material As String = ""
+    Public Property FirstIndex As Integer
+    Public Property IndexCount As Integer
+End Class
+
 Public Class ModelRenderer
 
     ''' <summary>One draw group: a slice of the index buffer plus its three maps.</summary>
@@ -76,6 +86,7 @@ Public Class ModelRenderer
     'Kept for export.  The GPU copy cannot be read back usefully, and
     'MeshExport.Write wants plain positions and indices.
     Private expPos As Vector3() = Array.Empty(Of Vector3)()
+    Private expNrm As Vector3() = Array.Empty(Of Vector3)()
     Private expUv As Vector2() = Array.Empty(Of Vector2)()
     Private expIdx As Integer() = Array.Empty(Of Integer)()
     Private ReadOnly texCache As New Dictionary(Of String, Integer)(StringComparer.OrdinalIgnoreCase)
@@ -398,10 +409,12 @@ Public Class ModelRenderer
         'Positions and UVs pulled back out of the interleaved block for export.
         Dim vn = verts.Count \ 16
         ReDim expPos(vn - 1)
+        ReDim expNrm(vn - 1)
         ReDim expUv(vn - 1)
         For i = 0 To vn - 1
             Dim b = i * 16
             expPos(i) = New Vector3(verts(b), verts(b + 1), verts(b + 2))
+            expNrm(i) = New Vector3(verts(b + 3), verts(b + 4), verts(b + 5))
             expUv(i) = New Vector2(verts(b + 6), verts(b + 7))
         Next
         expIdx = idx.ToArray()
@@ -431,24 +444,32 @@ Public Class ModelRenderer
     ''' user saying what he wants out, so it is offered both ways.
     ''' </summary>
     Public Function GetExportMesh(visibleOnly As Boolean,
-                                  ByRef pos As Vector3(), ByRef uv As Vector2(),
-                                  ByRef idx As Integer()) As Boolean
+                                  ByRef pos As Vector3(), ByRef nrm As Vector3(),
+                                  ByRef uv As Vector2(), ByRef idx As Integer(),
+                                  ByRef groups As List(Of ExportPart)) As Boolean
         If expPos.Length = 0 OrElse expIdx.Length = 0 Then Return False
         pos = expPos
+        nrm = expNrm
         uv = expUv
-        If Not visibleOnly Then
-            idx = expIdx
-            Return True
-        End If
+        'Rebuilt rather than reused even when nothing is hidden: dropping a part
+        'renumbers every group after it, so the group table has to be walked in
+        'step with the indices either way.
         Dim keep As New List(Of Integer)
+        Dim gs As New List(Of ExportPart)
         For Each pt In parts
-            If pt.Hidden Then Continue For
+            If visibleOnly AndAlso pt.Hidden Then Continue For
+            Dim first = keep.Count
             For i = pt.First To pt.First + pt.Count - 1
                 keep.Add(expIdx(i))
             Next
+            gs.Add(New ExportPart With {
+                .Name = If(String.IsNullOrEmpty(pt.Name), "part", pt.Name),
+                .Material = If(String.IsNullOrEmpty(pt.Ident), "material", pt.Ident),
+                .FirstIndex = first, .IndexCount = keep.Count - first})
         Next
         If keep.Count = 0 Then Return False
         idx = keep.ToArray()
+        groups = gs
         Return True
     End Function
 
@@ -547,6 +568,11 @@ Public Class ModelRenderer
     Public Sub SetPartHidden(i As Integer, hidden As Boolean)
         If i >= 0 AndAlso i < parts.Count Then parts(i).Hidden = hidden
     End Sub
+
+    Public Function IsPartHidden(i As Integer) As Boolean
+        If i < 0 OrElse i >= parts.Count Then Return False
+        Return parts(i).Hidden
+    End Function
 
     ''' <summary>Their DrawPbr, minus the atlas branch.</summary>
     Public Sub Draw(mvp As Matrix4, eye As Vector3)
