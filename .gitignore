@@ -35,3 +35,6 @@ $tf*/
 # people can download it.  Only the WiX scratch file beside it is ignored.
 # WiX build artifact, produced beside the MSI on every installer build
 *.wixpdb
+# Visual Studio project-migration report, regenerated on every load
+UpgradeLog*.htm
+UpgradeLog*.XML
