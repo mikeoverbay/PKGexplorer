@@ -196,10 +196,21 @@ Public Class GlModelView
         If rightW < PartsPanel.MIN_W Then rightW = 0
     End Sub
 
+    ''' <summary>
+    ''' Each panel is tested on its OWN, which matters now the browser is built
+    ''' lazily.  This came over from Exporter Studio as a single early return on
+    ''' the browser being absent or hidden - harmless there, because their
+    ''' browser always exists - but here the browser is Nothing until / or Tab
+    ''' asks for it, so that return fired every time and the PARTS panel could
+    ''' never be clicked at all.  Its rows looked dead.
+    ''' </summary>
     Private Function PointerOverPanel() As Boolean
-        If browser Is Nothing OrElse Not browser.Visible Then Return False
-        Return browser.HitsPanel(mouseAt.X, mouseAt.Y) OrElse
-               (partsPanel IsNot Nothing AndAlso partsPanel.HitsPanel(mouseAt.X, mouseAt.Y))
+        Dim overBrowser = browser IsNot Nothing AndAlso browser.Visible AndAlso
+                          browser.HitsPanel(mouseAt.X, mouseAt.Y)
+        Dim overParts = partsPanel IsNot Nothing AndAlso partsPanel.Visible AndAlso
+                        partsPanel.Rows.Count > 0 AndAlso
+                        partsPanel.HitsPanel(mouseAt.X, mouseAt.Y)
+        Return overBrowser OrElse overParts
     End Function
 
     Private Sub spin_Tick(sender As Object, e As EventArgs) Handles spin.Tick

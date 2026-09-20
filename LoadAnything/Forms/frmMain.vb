@@ -52,7 +52,8 @@ Public Class frmMain
                   model_view.Renderer3D.TriangleCount.ToString("N0") + " tris)"
         Model_Loaded = True
         If Not Me.Visible Then Me.Show()
-        Me.BringToFront()
+        Me.Activate()
+        model_view.Focus()          'so W / F and the panels get the keyboard
     End Sub
 
 
@@ -164,8 +165,7 @@ Public Class frmMain
         first_show = False
         Me.Hide()
         frmTreeList.Show()
-        frmTreeList.BringToFront()
-        frmTreeList.Focus()
+        frmTreeList.Activate()
     End Sub
 
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -176,7 +176,7 @@ Public Class frmMain
             e.Cancel = True
             Me.Hide()
             frmTreeList.Show()
-            frmTreeList.Focus()
+            frmTreeList.Activate()
             Return
         End If
         _STARTED = False
@@ -401,7 +401,15 @@ tryagain:
     End Sub
 
     Private Sub m_explorer_Click(sender As Object, e As EventArgs) Handles m_explorer.Click
+        'Show alone does not move the focus, so with the Explorer already open
+        'behind the viewer this button appeared to do nothing at all.  Activate
+        'is the call that raises a form and gives it the keyboard - Focus only
+        'works on a control inside the already-active window.
         frmTreeList.Show()
+        If frmTreeList.WindowState = FormWindowState.Minimized Then
+            frmTreeList.WindowState = FormWindowState.Normal
+        End If
+        frmTreeList.Activate()
     End Sub
 
 
