@@ -1,8 +1,8 @@
 ﻿<#
   Builds PKG Explorer's MSI end to end: publish, then package.
 
-    .\build_installer.ps1                 # 1.0.14, Release
-    .\build_installer.ps1 -Version 1.0.15
+    .\build_installer.ps1                 # 1.0.15, Release
+    .\build_installer.ps1 -Version 1.0.16
 
   Needs the WiX tool once per machine:   dotnet tool install --global wix
   (undo with:                            dotnet tool uninstall --global wix)
@@ -18,7 +18,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Version       = "1.0.14",
+    [string]$Version       = "1.0.15",
     [string]$Configuration = "Release"
 )
 

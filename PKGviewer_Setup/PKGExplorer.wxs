@@ -19,7 +19,8 @@
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 
-  <?define ProductVersion = "1.0.14" ?>
+  <!-- Fallback only; build_installer.ps1 passes -d ProductVersion and wins. -->
+  <?define ProductVersion = "1.0.15" ?>
 
   <Package
       Name="PKG Explorer"
