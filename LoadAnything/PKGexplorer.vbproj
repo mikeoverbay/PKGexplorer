@@ -137,6 +137,38 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--
+      Application.myapp HAS to be listed, even though nothing compiles it.
+
+      With MyType=WindowsForms, Visual Studio's Properties page asks
+      MyAppFileAccessor for the startup object, and that opens this file as a
+      DocData - which only works on a file that is a project ITEM.  Because
+      EnableDefaultNoneItems is false above, no glob picked it up, so the whole
+      Properties window died on open with:
+
+        QueryExecutionException: The file ...\My Project\Application.myapp is
+        not part of any project in the solution so it cannot be opened.
+
+      The generator metadata is what pairs it with Application.Designer.vb, so
+      editing the Application tab regenerates the My.MyApplication partial
+      class instead of silently doing nothing.
+    -->
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <!--
+      app.manifest is named by the ApplicationManifest property above, which is
+      enough to BUILD it in, but a property is not an item: it left the manifest
+      invisible in Solution Explorer and unofferable in the Properties page's
+      manifest dropdown.  None costs nothing - it is not copied anywhere.
+    -->
+    <None Include="My Project\app.manifest" />
+    <Compile Update="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Update="My Project\Settings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
